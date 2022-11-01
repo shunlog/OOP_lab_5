@@ -19,7 +19,7 @@ class Agent
   end
 end
 
-class Client < Agent
+class Customer < Agent
   CHOOSING_ORDER_TIME = 5
   EATING_TIME = 30
 
@@ -81,7 +81,7 @@ class Client < Agent
 end
 
 class Waiter < Agent
-  Order = Struct.new(:client, :items)
+  Order = Struct.new(:customer, :items)
   CLEANING_TIME = 2
 
   def initialize(model)
@@ -90,31 +90,31 @@ class Waiter < Agent
     @orders = []
   end
 
-  def client_waiting_ordering
-    clients_waiting = @model.clients.select { |c|
+  def customer_waiting_ordering
+    customers_waiting = @model.customers.select { |c|
       c.state == :waiting_waiter
     }
-    unless clients_waiting.size == 0
-      next_client = clients_waiting[0]
-      return next_client
+    unless customers_waiting.size == 0
+      next_customer = customers_waiting[0]
+      return next_customer
     end
     return nil
   end
 
-  def client_waiting_check
-    clients_waiting = @model.clients.select { |c|
+  def customer_waiting_check
+    customers_waiting = @model.customers.select { |c|
       c.state == :waiting_check
     }
-    unless clients_waiting.size == 0
-      next_client = clients_waiting[0]
-      return next_client
+    unless customers_waiting.size == 0
+      next_customer = customers_waiting[0]
+      return next_customer
     end
     return nil
   end
 
-  def take_order(client)
-    items = client.order
-    order = Order.new(client, items)
+  def take_order(customer)
+    items = customer.order
+    order = Order.new(customer, items)
     @orders << order
   end
 
@@ -127,14 +127,14 @@ class Waiter < Agent
 
   def serve_an_order
     order = @model.ledge.pop
-    order.client.serve
+    order.customer.serve
   end
 
-  def conduct_payment(client)
-    s = client.pay
+  def conduct_payment(customer)
+    s = customer.pay
     @model.profit += s
     @model.served += 1
-    @model.clients.delete(client)
+    @model.customers.delete(customer)
     @state = :cleaning_table
     @state_start = @model.steps
   end
@@ -145,14 +145,14 @@ class Waiter < Agent
       @state = :waiting
     end
     if @state == :waiting
-      if client_waiting_check
-        conduct_payment(client_waiting_check)
+      if customer_waiting_check
+        conduct_payment(customer_waiting_check)
 
         return
       end
 
-      if client_waiting_ordering
-        take_order(client_waiting_ordering)
+      if customer_waiting_ordering
+        take_order(customer_waiting_ordering)
         return
       end
 
@@ -208,7 +208,7 @@ class Cook < Agent
 end
 
 class Model
-  attr_accessor :clients, :waiters, :cooks, :steps,
+  attr_accessor :customers, :waiters, :cooks, :steps,
                 :menu, :order_holder, :ledge, :served,
                 :prng, :profit
 
@@ -234,7 +234,7 @@ class Model
     @ledge = []
     @served = 0
 
-    @clients = []
+    @customers = []
     @waiters = []
     NR_WAITERS.times do
       @waiters << Waiter.new(self)
@@ -249,23 +249,23 @@ class Model
     @end_hour = 20
   end
 
-  def client_appears
-    c = Client.new(self)
-    @clients << c
+  def customer_appears
+    c = Customer.new(self)
+    @customers << c
   end
 
-  def clients_appear
-    if @prng.rand(10) == 0 && @clients.size < NR_TABLES
-      client_appears
+  def customers_appear
+    if @prng.rand(10) == 0 && @customers.size < NR_TABLES
+      customer_appears
     end
   end
 
   def step
-    clients_appear
+    customers_appear
     @waiters.each do |w|
       w.step
     end
-    @clients.each do |c|
+    @customers.each do |c|
       c.step
     end
     @cooks.each do |c|
@@ -296,12 +296,12 @@ class Model
 
   def dashboard
     rows = [
-      ["Clients", "", @clients.size.to_s],
-      ["", "Choosing order", @clients.filter{ |c| c.state == :choosing_order}.size.to_s],
-      ["", "Waiting waiter", @clients.filter{ |c| c.state == :waiting_waiter}.size.to_s],
-      ["", "Waiting food", @clients.filter{ |c| c.state == :waiting_food}.size.to_s],
-      ["", "Eating", @clients.filter{ |c| c.state == :eating}.size.to_s],
-      ["", "Waiting check", @clients.filter{ |c| c.state == :waiting_check}.size.to_s],
+      ["Customers", "", @customers.size.to_s],
+      ["", "Choosing order", @customers.filter{ |c| c.state == :choosing_order}.size.to_s],
+      ["", "Waiting waiter", @customers.filter{ |c| c.state == :waiting_waiter}.size.to_s],
+      ["", "Waiting food", @customers.filter{ |c| c.state == :waiting_food}.size.to_s],
+      ["", "Eating", @customers.filter{ |c| c.state == :eating}.size.to_s],
+      ["", "Waiting check", @customers.filter{ |c| c.state == :waiting_check}.size.to_s],
 
       ["Waiters", "", @waiters.size.to_s],
       ["", "Waiting", @waiters.filter{ |c| c.state == :waiting}.size.to_s],
@@ -312,7 +312,7 @@ class Model
       ["", "Cooking", @cooks.filter{ |c| c.state == :cooking}.size.to_s],
 
       ["Tables", "", NR_TABLES.to_s],
-      ["", "Free", (NR_TABLES - @clients.size).to_s],
+      ["", "Free", (NR_TABLES - @customers.size).to_s],
 
       ["Served", "", @served.to_s],
 
