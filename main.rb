@@ -20,8 +20,8 @@ class Agent
 end
 
 class Client < Agent
-  CHOOSING_ORDER_TIME = 3
-  EATING_TIME = 5
+  CHOOSING_ORDER_TIME = 5
+  EATING_TIME = 30
 
   def initialize(model)
     super
@@ -31,7 +31,19 @@ class Client < Agent
   end
 
   def decide_order
-    @order = [@model.menu.burgers[0]]
+    @order = []
+    # one burger
+    @order += [@model.menu.burgers.sample]
+    # one or two fries
+    n_fries = @model.prng.rand(2) + 1
+    n_fries.times do
+      @order += [@model.menu.fries.sample]
+    end
+    # zero or one drinks
+    n_drinks = @model.prng.rand(2)
+    n_drinks.times do
+      @order += [@model.menu.drinks.sample]
+    end
     @state = :waiting_waiter
   end
 
@@ -42,7 +54,7 @@ class Client < Agent
 
   def serve
     @state = :eating
-    @stat_start = @model.steps
+    @state_start = @model.steps
   end
 
   def finish_eating
@@ -50,6 +62,8 @@ class Client < Agent
   end
 
   def pay
+    sum = @order.sum { |item| item.rev * item.pm}
+    @model.profit += sum
     @model.served += 1
   end
 
@@ -193,21 +207,26 @@ end
 
 class Model
   attr_accessor :clients, :waiters, :cooks, :steps,
-                :menu, :order_holder, :ledge, :served
+                :menu, :order_holder, :ledge, :served,
+                :prng, :profit
 
   NR_WAITERS = 2
   NR_COOKS = 2
-  NR_TABLES = 5
+  NR_TABLES = 10
 
-  Menu = Struct.new(:burgers, :fries, :sodas)
-  MenuItem = Struct.new(:name, :prep_time)
-  Burgers = [MenuItem.new("Fat Burger", 10)]
-  Fries = [MenuItem.new("Soggy Fries", 5)]
-  Drinks = [MenuItem.new("Mountain Urine", 1)]
+  Menu = Struct.new(:burgers, :fries, :drinks)
+  MenuItem = Struct.new(:name, :prep_time, :rev, :pm) #revenue, profit margin
+  Burgers = [MenuItem.new("Fat Burger", 10, 4.99, 1.2)] +
+            [MenuItem.new("Little Johnny", 8, 3.99, 1.2)]
+  Fries = [MenuItem.new("Soggy Fries", 5, 1.99, 3.0)] +
+          [MenuItem.new("Greasy Fingers", 6, 2.99, 3.0)]
+  Drinks = [MenuItem.new("Overpriced tea", 1, 1.99, 9.0)] +
+           [MenuItem.new("Overpriced drink", 1, 1.99, 9.0)]
 
   def initialize
     @prng = Random.new
     @steps = 0
+    @profit = 0
     @menu = Menu.new(Burgers, Fries, Drinks)
     @order_holder = []
     @ledge = []
@@ -222,6 +241,10 @@ class Model
     NR_COOKS.times do
       @cooks << Cook.new(self)
     end
+
+    @start_time = Time.new(2022, mon=1, day=1, hour=8, min=0, sec=0)
+    @start_hour = 8
+    @end_hour = 20
   end
 
   def client_appears
@@ -250,6 +273,25 @@ class Model
     @steps += 1
   end
 
+  def day
+    @steps.div(wh * 60)
+  end
+
+  def wh
+    @end_hour - @start_hour
+  end
+
+  def time
+    t = @start_time
+    unless day == 0
+      t += @steps.remainder(day) * 60
+    else
+      t += @steps * 60
+    end
+    t += day * 60 * 60 * 24
+    t.strftime "%H:%M"
+  end
+
   def dashboard
     rows = [
       ["Clients", "", @clients.size.to_s],
@@ -271,6 +313,8 @@ class Model
       ["", "Free", (NR_TABLES - @clients.size).to_s],
 
       ["Served", "", @served.to_s],
+
+      ["Profit", "", @profit.round.to_s],
     ]
 
     w1 = 10
@@ -278,10 +322,10 @@ class Model
     w3 = 5
     ws = w1 + w2 + w3
     puts "+" + "-"*(ws+2) + "+"
-    puts "|" + "Time: #{@steps}".center(ws+2) + "|"
+    puts "|" + "Time: #{time}, Day: #{day}".center(ws+2) + "|"
     puts "+" + "-"*(ws+2) + "+"
     rows.each do |row|
-      puts "|#{row[0].ljust(w1)}|#{row[1].ljust(w2)}|#{row[2].rjust(w3)}|" + "*"*row[2].to_i
+      puts "|#{row[0].ljust(w1)}|#{row[1].ljust(w2)}|#{row[2].rjust(w3)}|"
     end
     puts "+" + "-"*(ws+2) + "+"
   end
@@ -289,6 +333,6 @@ end
 
 model = Model.new
 
-20.times do
+(model.wh * 60 + 1).times do
   model.step
 end
