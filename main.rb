@@ -63,8 +63,7 @@ class Client < Agent
 
   def pay
     sum = @order.sum { |item| item.rev * item.pm}
-    @model.profit += sum
-    @model.served += 1
+    return sum
   end
 
   def step
@@ -132,7 +131,10 @@ class Waiter < Agent
   end
 
   def conduct_payment(client)
-    client.pay
+    s = client.pay
+    @model.profit += s
+    @model.served += 1
+    @model.clients.delete(client)
     @state = :cleaning_table
     @state_start = @model.steps
   end
