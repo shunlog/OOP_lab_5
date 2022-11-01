@@ -62,7 +62,7 @@ class Client < Agent
   end
 
   def pay
-    sum = @order.sum { |item| item.rev * item.pm}
+    sum = @order.sum { |item| item.price * item.pm}
     return sum
   end
 
@@ -217,13 +217,13 @@ class Model
   NR_TABLES = 10
 
   Menu = Struct.new(:burgers, :fries, :drinks)
-  MenuItem = Struct.new(:name, :prep_time, :rev, :pm) #revenue, profit margin
-  Burgers = [MenuItem.new("Fat Burger", 10, 4.99, 1.2)] +
-            [MenuItem.new("Little Johnny", 8, 3.99, 1.2)]
-  Fries = [MenuItem.new("Soggy Fries", 5, 1.99, 3.0)] +
-          [MenuItem.new("Greasy Fingers", 6, 2.99, 3.0)]
-  Drinks = [MenuItem.new("Overpriced tea", 1, 1.99, 9.0)] +
-           [MenuItem.new("Overpriced drink", 1, 1.99, 9.0)]
+  MenuItem = Struct.new(:name, :prep_time, :price, :pm) #profit margin
+  Burgers = [MenuItem.new("Fat Burger", 10, 4.99, 0.2)] +
+            [MenuItem.new("Little Johnny", 8, 3.99, 0.2)]
+  Fries = [MenuItem.new("Soggy Fries", 5, 1.99, 0.3)] +
+          [MenuItem.new("Greasy Fingers", 6, 2.99, 0.3)]
+  Drinks = [MenuItem.new("Overpriced tea", 1, 1.99, 0.9)] +
+           [MenuItem.new("Overpriced drink", 1, 1.99, 0.9)]
 
   def initialize
     @prng = Random.new
@@ -255,7 +255,7 @@ class Model
   end
 
   def clients_appear
-    if @prng.rand(3) == 0 && @clients.size < NR_TABLES
+    if @prng.rand(10) == 0 && @clients.size < NR_TABLES
       client_appears
     end
   end
@@ -316,12 +316,12 @@ class Model
 
       ["Served", "", @served.to_s],
 
-      ["Profit", "", @profit.round.to_s],
+      ["Profit", "", @profit.round(2).to_s],
     ]
 
     w1 = 10
     w2 = 20
-    w3 = 5
+    w3 = 7
     ws = w1 + w2 + w3
     puts "+" + "-"*(ws+2) + "+"
     puts "|" + "Time: #{time}, Day: #{day}".center(ws+2) + "|"
@@ -335,6 +335,6 @@ end
 
 model = Model.new
 
-(model.wh * 60 + 1).times do
+(model.wh*60+1).times do
   model.step
 end
