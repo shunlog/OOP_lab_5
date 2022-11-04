@@ -222,11 +222,13 @@ class Model
                 :menu, :order_holder, :ledge, :served,
                 :prng, :profit, :daily_metrics
 
-  NR_WAITERS = 2
-  NR_COOKS = 2
-  NR_TABLES = 10
+  WAITERS_COUNT = 2
+  COOKS_COUNT = 2
+  TABLES_COUNT = 10
   START_HOUR = 8
   END_HOUR = 20
+
+  START_TIME = Time.new(2022, mon=1, day=1, hour=8, min=0, sec=0)
 
   DailyMetrics = Struct.new(:profit, :served)
 
@@ -248,18 +250,29 @@ class Model
     @ledge = []
     @served = 0
     @daily_metrics = []
-
     @customers = []
     @waiters = []
-    NR_WAITERS.times do
+
+    WAITERS_COUNT.times do
       @waiters << Waiter.new(self)
     end
     @cooks = []
-    NR_COOKS.times do
+    COOKS_COUNT.times do
       @cooks << Cook.new(self)
     end
+  end
 
-    @start_time = Time.new(2022, mon=1, day=1, hour=8, min=0, sec=0)
+  def wrap_up
+    @order_holder = []
+    @ledge = []
+    @customers = []
+    @cooks.each do |c|
+      c.wrap_up
+    end
+    @waiters.each do |w|
+      w.wrap_up
+    end
+    store_daily_metrics
   end
 
   def customer_appears
@@ -268,7 +281,7 @@ class Model
   end
 
   def customers_appear
-    if @prng.rand(10) == 0 && @customers.size < NR_TABLES
+    if @prng.rand(10) == 0 && @customers.size < TABLES_COUNT
       customer_appears
     end
   end
@@ -294,19 +307,6 @@ class Model
     @served = 0
   end
 
-  def wrap_up
-    @order_holder = []
-    @ledge = []
-    @customers = []
-    @cooks.each do |c|
-      c.wrap_up
-    end
-    @waiters.each do |w|
-      w.wrap_up
-    end
-    store_daily_metrics
-  end
-
   def run_a_day
     (wh*60).times do
       step
@@ -324,7 +324,7 @@ class Model
   end
 
   def time
-    t = @start_time
+    t = START_TIME
     unless day == 0
       t += @steps.remainder(day) * 60
     else
@@ -355,8 +355,8 @@ class Model
       ["", "Waiting", @cooks.filter{ |c| c.state == :waiting}.size.to_s],
       ["", "Cooking", @cooks.filter{ |c| c.state == :cooking}.size.to_s],
 
-      ["Tables", "", NR_TABLES.to_s],
-      ["", "Free", (NR_TABLES - @customers.size).to_s],
+      ["Tables", "", TABLES_COUNT.to_s],
+      ["", "Free", (TABLES_COUNT - @customers.size).to_s],
 
       ["Served", "", @served.to_s],
 

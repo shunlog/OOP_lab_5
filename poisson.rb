@@ -4,8 +4,8 @@ require 'sciruby'
 
 hash = Hash.new(0)
 
-1000.times do
-  hash[Distribution::Poisson.rng(10)] += 1
+100.times do
+  hash[Distribution::Poisson.rng(0.1)] += 1
 end
 
 arr = hash.to_a
