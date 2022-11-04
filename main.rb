@@ -1,11 +1,11 @@
 #!/usr/bin/env ruby
-require 'table_print'
-DEBUG = true
+DEBUG = false
 
 def log(s)
-  if DEBUG
-    puts ">>> " + s
+  unless DEBUG
+    return
   end
+  puts ">>> " + s
 end
 
 class Agent
@@ -86,6 +86,11 @@ class Waiter < Agent
 
   def initialize(model)
     super
+    @state = :waiting
+    @orders = []
+  end
+
+  def wrap_up
     @state = :waiting
     @orders = []
   end
@@ -176,6 +181,11 @@ class Cook < Agent
     @state = :waiting
   end
 
+  def wrap_up
+    @state = :waiting
+    @order = nil
+  end
+
   def check_order_holder
     if @model.order_holder.empty?
       return
@@ -210,11 +220,15 @@ end
 class Model
   attr_accessor :customers, :waiters, :cooks, :steps,
                 :menu, :order_holder, :ledge, :served,
-                :prng, :profit
+                :prng, :profit, :daily_metrics
 
   NR_WAITERS = 2
   NR_COOKS = 2
   NR_TABLES = 10
+  START_HOUR = 8
+  END_HOUR = 20
+
+  DailyMetrics = Struct.new(:profit, :served)
 
   Menu = Struct.new(:burgers, :fries, :drinks)
   MenuItem = Struct.new(:name, :prep_time, :price, :pm) #profit margin
@@ -233,6 +247,7 @@ class Model
     @order_holder = []
     @ledge = []
     @served = 0
+    @daily_metrics = []
 
     @customers = []
     @waiters = []
@@ -245,8 +260,6 @@ class Model
     end
 
     @start_time = Time.new(2022, mon=1, day=1, hour=8, min=0, sec=0)
-    @start_hour = 8
-    @end_hour = 20
   end
 
   def customer_appears
@@ -271,8 +284,35 @@ class Model
     @cooks.each do |c|
       c.step
     end
-    dashboard
+    print_stats
     @steps += 1
+  end
+
+  def store_daily_metrics
+    @daily_metrics << DailyMetrics.new(@profit, @served)
+    @profit = 0
+    @served = 0
+  end
+
+  def wrap_up
+    @order_holder = []
+    @ledge = []
+    @customers = []
+    @cooks.each do |c|
+      c.wrap_up
+    end
+    @waiters.each do |w|
+      w.wrap_up
+    end
+    store_daily_metrics
+  end
+
+  def run_a_day
+    (wh*60).times do
+      step
+    end
+    wrap_up
+    step
   end
 
   def day
@@ -280,7 +320,7 @@ class Model
   end
 
   def wh
-    @end_hour - @start_hour
+    END_HOUR - START_HOUR
   end
 
   def time
@@ -294,7 +334,11 @@ class Model
     t.strftime "%H:%M"
   end
 
-  def dashboard
+  def print_stats
+    unless DEBUG
+      return
+    end
+
     rows = [
       ["Customers", "", @customers.size.to_s],
       ["", "Choosing order", @customers.filter{ |c| c.state == :choosing_order}.size.to_s],
@@ -331,10 +375,18 @@ class Model
     end
     puts "+" + "-"*(ws+2) + "+"
   end
+
+  def print_daily_metrics
+    @daily_metrics.each do |m|
+      print m.profit.round(2), "\t", m.served, "\n"
+    end
+  end
+
 end
 
 model = Model.new
-
-(model.wh*60+1).times do
-  model.step
+10.times do
+  model.run_a_day
 end
+
+model.print_daily_metrics
