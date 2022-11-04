@@ -268,7 +268,7 @@ class Model
 
   START_TIME = Time.new(2022, mon=1, day=1, hour=8, min=0, sec=0)
 
-  DailyMetrics = Struct.new(:profit, :served)
+  DailyMetrics = Struct.new(:profit, :served, :avg_rating, :ratings_count)
   Menu = Struct.new(:burgers, :fries, :drinks)
   MenuItem = Struct.new(:name, :prep_time, :price, :pm) #profit margin
 
@@ -340,10 +340,15 @@ class Model
     @steps += 1
   end
 
+  def avg_rating
+    (@ratings.sum.to_f / @ratings.size).round(1)
+  end
+
   def store_daily_metrics
-    @daily_metrics << DailyMetrics.new(@profit, @served)
+    @daily_metrics << DailyMetrics.new(@profit, @served, avg_rating, @ratings.size)
     @profit = 0
     @served = 0
+    @ratings = []
   end
 
   def run_a_day
@@ -351,7 +356,6 @@ class Model
       step
     end
     wrap_up
-    step
   end
 
   def day
@@ -421,7 +425,7 @@ class Model
 
   def print_daily_metrics
     @daily_metrics.each do |m|
-      print m.profit.round(2), "\t", m.served, "\n"
+      print m.profit.round(2), "\t", m.served, "\t", m.avg_rating, "\t", m.ratings_count, "\n"
     end
   end
 
