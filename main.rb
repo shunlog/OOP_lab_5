@@ -1,11 +1,31 @@
 #!/usr/bin/env ruby
-DEBUG = false
+DEBUG = true
+LOG = true
+STATS = false
+
 
 def log(s)
-  unless DEBUG
+  unless DEBUG && LOG
     return
   end
-  puts ">>> " + s
+  print ">>> ", s, "\n"
+end
+
+class Order
+  attr_accessor :customer
+
+  def initialize(customer, items)
+    @customer = customer
+    @items = items
+  end
+
+  def prep_time
+    @items.sum() { |item| item.prep_time}
+  end
+
+  def cost
+    @items.sum() { |item| item.price}
+  end
 end
 
 class Agent
@@ -26,44 +46,65 @@ class Customer < Agent
   def initialize(model)
     super
     @state = :choosing_order
-    @state_start = model.steps
+    @state_start = @model.steps
+    @waiting_time = 0
     @order = nil
   end
 
   def decide_order
-    @order = []
+    items = []
     # one burger
-    @order += [@model.menu.burgers.sample]
+    items += [@model.menu.burgers.sample]
     # one or two fries
     n_fries = @model.prng.rand(2) + 1
     n_fries.times do
-      @order += [@model.menu.fries.sample]
+      items += [@model.menu.fries.sample]
     end
     # zero or one drinks
     n_drinks = @model.prng.rand(2)
     n_drinks.times do
-      @order += [@model.menu.drinks.sample]
+      items += [@model.menu.drinks.sample]
     end
+    @order = Order.new(self, items)
     @state = :waiting_waiter
   end
 
   def order
+    @waiting_time += @model.steps - @state_start
     @state = :waiting_food
     return @order
   end
 
   def serve
+    @waiting_time += @model.steps - @state_start
     @state = :eating
     @state_start = @model.steps
   end
 
   def finish_eating
     @state = :waiting_check
+    @state_start = @model.steps
   end
 
   def pay
-    sum = @order.sum { |item| item.price * item.pm}
-    return sum
+    @waiting_time += @model.steps - @state_start
+    return @order.cost
+  end
+
+  def rate
+    ratio = @waiting_time.to_f / @order.prep_time
+    if ratio < 2 then
+      stars = 5
+    elsif ratio < 3 then
+      stars = 4
+    elsif ratio < 5 then
+      stars = 3
+    elsif ratio < 7 then
+      stars = 2
+    else
+      stars = 1
+    end
+    @model.rate(stars)
   end
 
   def step
@@ -118,9 +159,7 @@ class Waiter < Agent
   end
 
   def take_order(customer)
-    items = customer.order
-    order = Order.new(customer, items)
-    @orders << order
+    @orders << customer.order
   end
 
   def leave_orders
@@ -135,11 +174,16 @@ class Waiter < Agent
     order.customer.serve
   end
 
-  def conduct_payment(customer)
+  def bill_customer(customer)
     s = customer.pay
+    customer.rate
     @model.profit += s
     @model.served += 1
     @model.customers.delete(customer)
+    clean_table
+  end
+
+  def clean_table
     @state = :cleaning_table
     @state_start = @model.steps
   end
@@ -151,8 +195,7 @@ class Waiter < Agent
     end
     if @state == :waiting
       if customer_waiting_check
-        conduct_payment(customer_waiting_check)
-
+        bill_customer(customer_waiting_check)
         return
       end
 
@@ -195,11 +238,6 @@ class Cook < Agent
     @state_start = @model.steps
   end
 
-  def prep_time(order)
-    # how long an order (list) will take to cook
-    order.items.sum() { |item| item.prep_time}
-  end
-
   def finish_order
     @state = :waiting
     @model.ledge << @order
@@ -211,7 +249,7 @@ class Cook < Agent
       check_order_holder
     end
     if @state == :cooking &&
-       @model.steps - @state_start >= prep_time(@order)
+       @model.steps - @state_start >= @order.prep_time
       finish_order
     end
   end
@@ -231,9 +269,9 @@ class Model
   START_TIME = Time.new(2022, mon=1, day=1, hour=8, min=0, sec=0)
 
   DailyMetrics = Struct.new(:profit, :served)
-
   Menu = Struct.new(:burgers, :fries, :drinks)
   MenuItem = Struct.new(:name, :prep_time, :price, :pm) #profit margin
+
   Burgers = [MenuItem.new("Fat Burger", 10, 4.99, 0.2)] +
             [MenuItem.new("Little Johnny", 8, 3.99, 0.2)]
   Fries = [MenuItem.new("Soggy Fries", 5, 1.99, 0.3)] +
@@ -245,6 +283,7 @@ class Model
     @prng = Random.new
     @steps = 0
     @profit = 0
+    @ratings = []
     @menu = Menu.new(Burgers, Fries, Drinks)
     @order_holder = []
     @ledge = []
@@ -334,8 +373,12 @@ class Model
     t.strftime "%H:%M"
   end
 
+  def rate(rating)
+    @ratings << rating
+  end
+
   def print_stats
-    unless DEBUG
+    unless DEBUG && STATS
       return
     end
 
