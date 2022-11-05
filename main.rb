@@ -263,14 +263,15 @@ class Model
                 :logger
 
   WAITERS_COUNT = 1
-  COOKS_COUNT = 2
-  TABLES_COUNT = 10
+  COOKS_COUNT = 5
+  TABLES_COUNT = 20
   START_HOUR = 8
   END_HOUR = 20
   CLOSING_HOUR = 19
   INITIAL_RATING = 4.0
   INITIAL_RATINGS_COUNT = 10
   INITIAL_POPULARITY = 10 # number of customers daily
+  COOK_SALARY = 80.0
 
   START_TIME = Time.new(2022, mon=1, day=1, hour=8, min=0, sec=0)
 
@@ -285,9 +286,9 @@ class Model
   Drinks = [MenuItem.new("Overpriced tea", 1, 1.99, 0.9)] +
            [MenuItem.new("Overpriced drink", 1, 1.99, 0.9)]
 
-  def initialize
+  def initialize(cooks_count: COOKS_COUNT)
     @logger = Logger.new(STDOUT)
-    @logger.level = Logger::DEBUG
+    @logger.level = Logger::WARN
 
     @prng = Random.new
     @ratings = [INITIAL_RATING] * INITIAL_RATINGS_COUNT
@@ -300,7 +301,8 @@ class Model
       @waiters << Waiter.new(self)
     end
     @cooks = []
-    COOKS_COUNT.times do
+    @logger.info{cooks_count}
+    cooks_count.times do
       @cooks << Cook.new(self)
     end
 
@@ -392,7 +394,8 @@ class Model
   end
 
   def store_daily_metrics
-    @daily_metrics << DailyMetrics.new(@profit, @served, avg_rating, avg_waiting_time, @popularity)
+    profit = @profit - (@cooks.size * COOK_SALARY)
+    @daily_metrics << DailyMetrics.new(profit, @served, avg_rating, avg_waiting_time, @popularity)
   end
 
   def run_a_day
@@ -475,17 +478,23 @@ class Model
     end
   end
 
+  def daily_metrics_hash
+    @daily_metrics.map{ |e| e.to_h }
+  end
+
   def json_daily_metrics
     hashified = @daily_metrics.map{ |e| e.to_h }
     JSON.generate(hashified)
   end
 end
 
-model = Model.new
-10.times do
-  model.run_a_day
+hash = Hash.new()
+(1..7).step do |i|
+  model = Model.new(cooks_count: i)
+  100.times do
+    model.run_a_day
+  end
+  hash[i.to_s] = model.daily_metrics_hash
 end
 
-model.print_daily_metrics
-
-puts model.json_daily_metrics
+puts JSON.generate(hash)
