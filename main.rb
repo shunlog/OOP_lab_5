@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 DEBUG = true
 LOG = true
-STATS = false
+STATS = true
 
 
 def log(s)
@@ -88,12 +88,19 @@ class Customer < Agent
 
   def pay
     @waiting_time += @model.steps - @state_start
+    @model.waiting_times << @waiting_time
     return @order.cost
+  end
+
+  def wrap_up
+    @model.rate(1)
+    @model.served += 1
+    @model.waiting_times << @waiting_time
   end
 
   def rate
     ratio = @waiting_time.to_f / @order.prep_time
-    if ratio < 2 then
+    if ratio < 2.5 then
       stars = 5
     elsif ratio < 3 then
       stars = 4
@@ -258,17 +265,18 @@ end
 class Model
   attr_accessor :customers, :waiters, :cooks, :steps,
                 :menu, :order_holder, :ledge, :served,
-                :prng, :profit, :daily_metrics
+                :prng, :profit, :daily_metrics, :waiting_times
 
-  WAITERS_COUNT = 2
-  COOKS_COUNT = 2
-  TABLES_COUNT = 10
+  WAITERS_COUNT = 5
+  COOKS_COUNT = 5
+  TABLES_COUNT = 100
   START_HOUR = 8
   END_HOUR = 20
+  CLOSING_HOUR = 19
 
   START_TIME = Time.new(2022, mon=1, day=1, hour=8, min=0, sec=0)
 
-  DailyMetrics = Struct.new(:profit, :served, :avg_rating, :ratings_count)
+  DailyMetrics = Struct.new(:profit, :served, :avg_rating, :avg_waiting_time)
   Menu = Struct.new(:burgers, :fries, :drinks)
   MenuItem = Struct.new(:name, :prep_time, :price, :pm) #profit margin
 
@@ -284,6 +292,7 @@ class Model
     @steps = 0
     @profit = 0
     @ratings = []
+    @waiting_times = []
     @menu = Menu.new(Burgers, Fries, Drinks)
     @order_holder = []
     @ledge = []
@@ -302,8 +311,12 @@ class Model
   end
 
   def wrap_up
+    @steps = 0
     @order_holder = []
     @ledge = []
+    @customers.each do |c|
+      c.wrap_up
+    end
     @customers = []
     @cooks.each do |c|
       c.wrap_up
@@ -315,14 +328,27 @@ class Model
   end
 
   def customer_appears
+    unless @customers.size < TABLES_COUNT
+      return
+    end
     c = Customer.new(self)
     @customers << c
   end
 
+  def closing_time
+    (START_HOUR + @steps) > ((CLOSING_HOUR - START_HOUR) * 60)
+  end
+
   def customers_appear
-    if @prng.rand(10) == 0 && @customers.size < TABLES_COUNT
+    if closing_time
+      return
+    end
+    10.times do
       customer_appears
     end
+    # if @prng.rand(1) == 0 && @customers.size < TABLES_COUNT
+    #   customer_appears
+    # end
   end
 
   def step
@@ -340,12 +366,16 @@ class Model
     @steps += 1
   end
 
+  def avg_waiting_time
+    (@waiting_times.sum.to_f / @waiting_times.size).round
+  end
+
   def avg_rating
     (@ratings.sum.to_f / @ratings.size).round(1)
   end
 
   def store_daily_metrics
-    @daily_metrics << DailyMetrics.new(@profit, @served, avg_rating, @ratings.size)
+    @daily_metrics << DailyMetrics.new(@profit, @served, avg_rating, avg_waiting_time)
     @profit = 0
     @served = 0
     @ratings = []
@@ -408,6 +438,7 @@ class Model
       ["Served", "", @served.to_s],
 
       ["Profit", "", @profit.round(2).to_s],
+      ["Rating", "", avg_rating.to_s],
     ]
 
     w1 = 10
@@ -425,7 +456,7 @@ class Model
 
   def print_daily_metrics
     @daily_metrics.each do |m|
-      print m.profit.round(2), "\t", m.served, "\t", m.avg_rating, "\t", m.ratings_count, "\n"
+      print m.profit.round(2), "\t", m.served, "\t", m.avg_rating, "\t", m.avg_waiting_time, "\n"
     end
   end
 
