@@ -18,7 +18,6 @@ class Model
   INITIAL_POPULARITY = 10 # number of customers daily
   COOK_SALARY = 80.0
 
-  STATS = false
   START_TIME = Time.new(2022, mon = 1, day = 1, hour = 8, min = 0, sec = 0)
 
   DailyMetrics = Struct.new(:profit, :served, :avg_rating, :avg_waiting_time, :popularity)
@@ -32,8 +31,10 @@ class Model
   Drinks = [MenuItem.new('Overpriced tea', 1, 1.99, 0.9)] +
            [MenuItem.new('Overpriced drink', 1, 1.99, 0.9)]
 
+  def initialize(cooks_count: COOKS_COUNT, show_stats: false)
     @logger = Logger.new($stdout)
     @logger.level = Logger::WARN
+    @show_stats = show_stats
 
     @prng = Random.new
     @ratings = [INITIAL_RATING] * INITIAL_RATINGS_COUNT
@@ -159,9 +160,7 @@ class Model
   end
 
   def print_stats
-    unless STATS
-      return
-    end
+    return unless @show_stats
 
     rows = [
       ['Customers', '', @customers.size.to_s],
