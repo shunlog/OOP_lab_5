@@ -488,13 +488,17 @@ class Model
   end
 end
 
-hash = Hash.new()
-(1..7).step do |i|
-  model = Model.new(cooks_count: i)
-  100.times do
-    model.run_a_day
+def run_for_varying_cooks(min_cooks: 1, max_cooks: 7, days: 10)
+  hash = Hash.new()
+  (min_cooks..max_cooks).step do |i|
+    model = Model.new(cooks_count: i)
+    days.times do
+      model.run_a_day
+    end
+    hash[i.to_s] = model.daily_metrics_hash
   end
-  hash[i.to_s] = model.daily_metrics_hash
+  return hash
 end
 
+hash = run_for_varying_cooks
 puts JSON.generate(hash)
