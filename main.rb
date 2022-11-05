@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 DEBUG = true
 LOG = true
-STATS = true
+STATS = false
 
 
 def log(s)
@@ -111,6 +111,7 @@ class Customer < Agent
     else
       stars = 1
     end
+    log(">>> Customer rated " + stars.to_s + " after waiting "+ @waiting_time.to_s + " for an order which takes " + @order.prep_time.to_s)
     @model.rate(stars)
   end
 
@@ -267,9 +268,9 @@ class Model
                 :menu, :order_holder, :ledge, :served,
                 :prng, :profit, :daily_metrics, :waiting_times
 
-  WAITERS_COUNT = 5
-  COOKS_COUNT = 5
-  TABLES_COUNT = 100
+  WAITERS_COUNT = 1
+  COOKS_COUNT = 2
+  TABLES_COUNT = 10
   START_HOUR = 8
   END_HOUR = 20
   CLOSING_HOUR = 19
