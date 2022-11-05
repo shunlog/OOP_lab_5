@@ -466,6 +466,10 @@ class Model
     end
   end
 
+  def json_daily_metrics
+    hashified = @daily_metrics.map{ |e| e.to_h }
+    JSON.generate(hashified)
+  end
 end
 
 model = Model.new
