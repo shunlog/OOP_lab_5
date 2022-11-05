@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 require_relative 'Agent'
 
@@ -18,25 +19,25 @@ class Waiter < Agent
   end
 
   def customer_waiting_ordering
-    customers_waiting = @model.customers.select { |c|
+    customers_waiting = @model.customers.select do |c|
       c.state == :waiting_waiter
-    }
-    unless customers_waiting.size == 0
+    end
+    unless customers_waiting.size.zero?
       next_customer = customers_waiting[0]
       return next_customer
     end
-    return nil
+    nil
   end
 
   def customer_waiting_check
-    customers_waiting = @model.customers.select { |c|
+    customers_waiting = @model.customers.select do |c|
       c.state == :waiting_check
-    }
-    unless customers_waiting.size == 0
+    end
+    unless customers_waiting.size.zero?
       next_customer = customers_waiting[0]
       return next_customer
     end
-    return nil
+    nil
   end
 
   def take_order(customer)
@@ -44,9 +45,9 @@ class Waiter < Agent
   end
 
   def leave_orders
-    @orders.each { |o|
+    @orders.each do |o|
       @model.order_holder << o
-    }
+    end
     @orders = []
   end
 
@@ -92,7 +93,7 @@ class Waiter < Agent
 
       unless @model.ledge.empty?
         serve_an_order
-        return
+        nil
       end
     end
   end

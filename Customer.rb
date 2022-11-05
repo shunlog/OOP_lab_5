@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 require_relative 'Agent'
 
@@ -35,7 +36,7 @@ class Customer < Agent
   def order
     @waiting_time += @model.steps - @state_start
     @state = :waiting_food
-    return @order
+    @order
   end
 
   def serve
@@ -52,7 +53,7 @@ class Customer < Agent
   def pay
     @waiting_time += @model.steps - @state_start
     @model.waiting_times << @waiting_time
-    return @order.cost
+    @order.cost
   end
 
   def wrap_up
@@ -63,17 +64,17 @@ class Customer < Agent
 
   def rate
     ratio = @waiting_time.to_f / @order.prep_time
-    if ratio < 2.5 then
-      stars = 5
-    elsif ratio < 3 then
-      stars = 4
-    elsif ratio < 5 then
-      stars = 3
-    elsif ratio < 7 then
-      stars = 2
-    else
-      stars = 1
-    end
+    stars = if ratio < 2.5
+              5
+            elsif ratio < 3
+              4
+            elsif ratio < 5
+              3
+            elsif ratio < 7
+              2
+            else
+              1
+            end
     @model.rate(stars)
   end
 
@@ -86,7 +87,7 @@ class Customer < Agent
     if @state == :eating &&
        @model.steps - @state_start >= EATING_TIME
       finish_eating
-      return
+      nil
     end
   end
 end

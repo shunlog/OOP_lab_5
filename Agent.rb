@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 class Agent
   attr_accessor :state
@@ -7,6 +8,5 @@ class Agent
     @model = model
   end
 
-  def step
-  end
+  def step; end
 end

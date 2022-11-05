@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 require_relative 'Agent'
 
@@ -15,9 +16,8 @@ class Cook < Agent
   end
 
   def check_order_holder
-    if @model.order_holder.empty?
-      return
-    end
+    return if @model.order_holder.empty?
+
     @order = @model.order_holder.pop
     @state = :cooking
     @state_start = @model.steps
@@ -30,9 +30,7 @@ class Cook < Agent
   end
 
   def step
-    if @state == :waiting
-      check_order_holder
-    end
+    check_order_holder if @state == :waiting
     if @state == :cooking &&
        @model.steps - @state_start >= @order.prep_time
       finish_order

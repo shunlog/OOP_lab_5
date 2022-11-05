@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 class Model
   attr_accessor :customers, :waiters, :cooks, :steps,
@@ -18,21 +19,20 @@ class Model
   COOK_SALARY = 80.0
 
   STATS = false
-  START_TIME = Time.new(2022, mon=1, day=1, hour=8, min=0, sec=0)
+  START_TIME = Time.new(2022, mon = 1, day = 1, hour = 8, min = 0, sec = 0)
 
   DailyMetrics = Struct.new(:profit, :served, :avg_rating, :avg_waiting_time, :popularity)
   Menu = Struct.new(:burgers, :fries, :drinks)
-  MenuItem = Struct.new(:name, :prep_time, :price, :pm) #profit margin
+  MenuItem = Struct.new(:name, :prep_time, :price, :pm) # profit margin
 
-  Burgers = [MenuItem.new("Fat Burger", 10, 4.99, 0.2)] +
-            [MenuItem.new("Little Johnny", 8, 3.99, 0.2)]
-  Fries = [MenuItem.new("Soggy Fries", 5, 1.99, 0.3)] +
-          [MenuItem.new("Greasy Fingers", 6, 2.99, 0.3)]
-  Drinks = [MenuItem.new("Overpriced tea", 1, 1.99, 0.9)] +
-           [MenuItem.new("Overpriced drink", 1, 1.99, 0.9)]
+  Burgers = [MenuItem.new('Fat Burger', 10, 4.99, 0.2)] +
+            [MenuItem.new('Little Johnny', 8, 3.99, 0.2)]
+  Fries = [MenuItem.new('Soggy Fries', 5, 1.99, 0.3)] +
+          [MenuItem.new('Greasy Fingers', 6, 2.99, 0.3)]
+  Drinks = [MenuItem.new('Overpriced tea', 1, 1.99, 0.9)] +
+           [MenuItem.new('Overpriced drink', 1, 1.99, 0.9)]
 
-  def initialize(cooks_count: COOKS_COUNT)
-    @logger = Logger.new(STDOUT)
+    @logger = Logger.new($stdout)
     @logger.level = Logger::WARN
 
     @prng = Random.new
@@ -46,7 +46,7 @@ class Model
       @waiters << Waiter.new(self)
     end
     @cooks = []
-    @logger.info{cooks_count}
+    @logger.info { cooks_count }
     cooks_count.times do
       @cooks << Cook.new(self)
     end
@@ -55,7 +55,7 @@ class Model
   end
 
   def new_day
-    @logger.info{"Starting day " + @daily_metrics.size.to_s}
+    @logger.info { "Starting day #{@daily_metrics.size}" }
     @steps = 0
     @order_holder = []
     @ledge = []
@@ -63,24 +63,18 @@ class Model
     @waiting_times = []
     @profit = 0
     @served = 0
-    unless @popularity
-      @popularity = INITIAL_POPULARITY
-    else
+    if @popularity
       @popularity += (avg_rating - 3) * @ratings.size * 1
+    else
+      @popularity = INITIAL_POPULARITY
     end
     @ratings = []
-    @cooks.each do |c|
-      c.new_day
-    end
-    @waiters.each do |w|
-      w.new_day
-    end
+    @cooks.each(&:new_day)
+    @waiters.each(&:new_day)
   end
 
   def wrap_up
-    @customers.each do |c|
-      c.wrap_up
-    end
+    @customers.each(&:wrap_up)
     store_daily_metrics
     new_day
   end
@@ -99,9 +93,8 @@ class Model
   end
 
   def customers_appear
-    if closing_time
-      return
-    end
+    return if closing_time
+
     mean = @popularity.to_f / (wh * 60) # mean nr of customers per minute
     n = Distribution::Poisson.rng(mean)
     n.times do
@@ -111,30 +104,22 @@ class Model
 
   def step
     customers_appear
-    @waiters.each do |w|
-      w.step
-    end
-    @customers.each do |c|
-      c.step
-    end
-    @cooks.each do |c|
-      c.step
-    end
+    @waiters.each(&:step)
+    @customers.each(&:step)
+    @cooks.each(&:step)
     print_stats
     @steps += 1
   end
 
   def avg_waiting_time
-    if @waiting_times.size == 0
-      return 0
-    end
+    return 0 if @waiting_times.size.zero?
+
     (@waiting_times.sum.to_f / @waiting_times.size).round
   end
 
   def avg_rating
-    if @ratings.size == 0
-      return 0
-    end
+    return 0 if @ratings.size.zero?
+
     (@ratings.sum.to_f / @ratings.size).round(1)
   end
 
@@ -144,14 +129,14 @@ class Model
   end
 
   def run_a_day
-    (wh*60).times do
+    (wh * 60).times do
       step
     end
     wrap_up
   end
 
   def day
-    @steps.div(wh * 60)
+    @daily_metrics.size + 1
   end
 
   def wh
@@ -160,13 +145,13 @@ class Model
 
   def time
     t = START_TIME
-    unless day == 0
-      t += @steps.remainder(day) * 60
-    else
-      t += @steps * 60
-    end
+    t += if day.zero?
+           @steps * 60
+         else
+           @steps.remainder(day) * 60
+         end
     t += day * 60 * 60 * 24
-    t.strftime "%H:%M"
+    t.strftime '%H:%M'
   end
 
   def rate(rating)
@@ -179,41 +164,41 @@ class Model
     end
 
     rows = [
-      ["Customers", "", @customers.size.to_s],
-      ["", "Choosing order", @customers.filter{ |c| c.state == :choosing_order}.size.to_s],
-      ["", "Waiting waiter", @customers.filter{ |c| c.state == :waiting_waiter}.size.to_s],
-      ["", "Waiting food", @customers.filter{ |c| c.state == :waiting_food}.size.to_s],
-      ["", "Eating", @customers.filter{ |c| c.state == :eating}.size.to_s],
-      ["", "Waiting check", @customers.filter{ |c| c.state == :waiting_check}.size.to_s],
+      ['Customers', '', @customers.size.to_s],
+      ['', 'Choosing order', @customers.filter { |c| c.state == :choosing_order }.size.to_s],
+      ['', 'Waiting waiter', @customers.filter { |c| c.state == :waiting_waiter }.size.to_s],
+      ['', 'Waiting food', @customers.filter { |c| c.state == :waiting_food }.size.to_s],
+      ['', 'Eating', @customers.filter { |c| c.state == :eating }.size.to_s],
+      ['', 'Waiting check', @customers.filter { |c| c.state == :waiting_check }.size.to_s],
 
-      ["Waiters", "", @waiters.size.to_s],
-      ["", "Waiting", @waiters.filter{ |c| c.state == :waiting}.size.to_s],
-      ["", "Cleaning table", @waiters.filter{ |c| c.state == :cleaning_table}.size.to_s],
+      ['Waiters', '', @waiters.size.to_s],
+      ['', 'Waiting', @waiters.filter { |c| c.state == :waiting }.size.to_s],
+      ['', 'Cleaning table', @waiters.filter { |c| c.state == :cleaning_table }.size.to_s],
 
-      ["Cooks", "", @cooks.size.to_s],
-      ["", "Waiting", @cooks.filter{ |c| c.state == :waiting}.size.to_s],
-      ["", "Cooking", @cooks.filter{ |c| c.state == :cooking}.size.to_s],
+      ['Cooks', '', @cooks.size.to_s],
+      ['', 'Waiting', @cooks.filter { |c| c.state == :waiting }.size.to_s],
+      ['', 'Cooking', @cooks.filter { |c| c.state == :cooking }.size.to_s],
 
-      ["Tables", "", TABLES_COUNT.to_s],
-      ["", "Free", (TABLES_COUNT - @customers.size).to_s],
+      ['Tables', '', TABLES_COUNT.to_s],
+      ['', 'Free', (TABLES_COUNT - @customers.size).to_s],
 
-      ["Served", "", @served.to_s],
+      ['Served', '', @served.to_s],
 
-      ["Profit", "", @profit.round(2).to_s],
-      ["Rating", "", avg_rating.to_s],
+      ['Profit', '', @profit.round(2).to_s],
+      ['Rating', '', avg_rating.to_s]
     ]
 
     w1 = 10
     w2 = 20
     w3 = 7
     ws = w1 + w2 + w3
-    puts "+" + "-"*(ws+2) + "+"
-    puts "|" + "Time: #{time}, Day: #{day}".center(ws+2) + "|"
-    puts "+" + "-"*(ws+2) + "+"
+    puts "+#{'-' * (ws + 2)}+"
+    puts "|#{"Time: #{time}, Day: #{day}".center(ws + 2)}|"
+    puts "+#{'-' * (ws + 2)}+"
     rows.each do |row|
       puts "|#{row[0].ljust(w1)}|#{row[1].ljust(w2)}|#{row[2].rjust(w3)}|"
     end
-    puts "+" + "-"*(ws+2) + "+"
+    puts "+#{'-' * (ws + 2)}+"
   end
 
   def print_daily_metrics
@@ -224,11 +209,11 @@ class Model
   end
 
   def daily_metrics_hash
-    @daily_metrics.map{ |e| e.to_h }
+    @daily_metrics.map(&:to_h)
   end
 
   def json_daily_metrics
-    hashified = @daily_metrics.map{ |e| e.to_h }
+    hashified = @daily_metrics.map(&:to_h)
     JSON.generate(hashified)
   end
 end

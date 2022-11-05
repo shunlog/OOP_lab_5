@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
+
 require 'logger'
 require 'sciruby'
 require 'json'
@@ -9,7 +11,7 @@ require_relative 'Cook'
 require_relative 'Waiter'
 
 def run_for_varying_cooks(min_cooks: 1, max_cooks: 7, days: 10)
-  hash = Hash.new()
+  hash = {}
   (min_cooks..max_cooks).step do |i|
     model = Model.new(cooks_count: i)
     days.times do
@@ -17,7 +19,7 @@ def run_for_varying_cooks(min_cooks: 1, max_cooks: 7, days: 10)
     end
     hash[i.to_s] = model.daily_metrics_hash
   end
-  return hash
+  hash
 end
 
 hash = run_for_varying_cooks

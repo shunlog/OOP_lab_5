@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 class Order
   attr_accessor :customer
@@ -9,10 +10,10 @@ class Order
   end
 
   def prep_time
-    @items.sum() { |item| item.prep_time}
+    @items.sum(&:prep_time)
   end
 
   def cost
-    @items.sum() { |item| item.price}
+    @items.sum(&:price)
   end
 end
