@@ -1,15 +1,7 @@
 #!/usr/bin/env ruby
-DEBUG = true
-LOG = true
-STATS = false
+require 'logger'
 
-
-def log(s)
-  unless DEBUG && LOG
-    return
-  end
-  print ">>> ", s, "\n"
-end
+STATS = true
 
 class Order
   attr_accessor :customer
@@ -111,7 +103,6 @@ class Customer < Agent
     else
       stars = 1
     end
-    log(">>> Customer rated " + stars.to_s + " after waiting "+ @waiting_time.to_s + " for an order which takes " + @order.prep_time.to_s)
     @model.rate(stars)
   end
 
@@ -139,7 +130,7 @@ class Waiter < Agent
     @orders = []
   end
 
-  def wrap_up
+  def new_day
     @state = :waiting
     @orders = []
   end
@@ -232,7 +223,7 @@ class Cook < Agent
     @state = :waiting
   end
 
-  def wrap_up
+  def new_day
     @state = :waiting
     @order = nil
   end
@@ -266,14 +257,18 @@ end
 class Model
   attr_accessor :customers, :waiters, :cooks, :steps,
                 :menu, :order_holder, :ledge, :served,
-                :prng, :profit, :daily_metrics, :waiting_times
+                :prng, :profit, :daily_metrics, :waiting_times,
+                :logger
 
-  WAITERS_COUNT = 1
-  COOKS_COUNT = 2
-  TABLES_COUNT = 10
+  WAITERS_COUNT = 10
+  COOKS_COUNT = 20
+  TABLES_COUNT = 1000
   START_HOUR = 8
   END_HOUR = 20
   CLOSING_HOUR = 19
+  INITIAL_RATING = 4.0
+  INITIAL_RATINGS_COUNT = 10
+  INITIAL_POPULARITY = 10 # number of customers daily
 
   START_TIME = Time.new(2022, mon=1, day=1, hour=8, min=0, sec=0)
 
@@ -289,19 +284,16 @@ class Model
            [MenuItem.new("Overpriced drink", 1, 1.99, 0.9)]
 
   def initialize
-    @prng = Random.new
-    @steps = 0
-    @profit = 0
-    @ratings = []
-    @waiting_times = []
-    @menu = Menu.new(Burgers, Fries, Drinks)
-    @order_holder = []
-    @ledge = []
-    @served = 0
-    @daily_metrics = []
-    @customers = []
-    @waiters = []
+    @logger = Logger.new(STDOUT)
+    @logger.level = Logger::DEBUG
 
+    @prng = Random.new
+    @ratings = [INITIAL_RATING] * INITIAL_RATINGS_COUNT
+    @popularity = INITIAL_POPULARITY
+    @menu = Menu.new(Burgers, Fries, Drinks)
+    @daily_metrics = []
+
+    @waiters = []
     WAITERS_COUNT.times do
       @waiters << Waiter.new(self)
     end
@@ -309,23 +301,33 @@ class Model
     COOKS_COUNT.times do
       @cooks << Cook.new(self)
     end
+
+    new_day
   end
 
-  def wrap_up
+  def new_day
     @steps = 0
     @order_holder = []
     @ledge = []
+    @customers = []
+    @waiting_times = []
+    @profit = 0
+    @served = 0
+    @ratings = []
+    @cooks.each do |c|
+      c.new_day
+    end
+    @waiters.each do |w|
+      w.new_day
+    end
+  end
+
+  def wrap_up
     @customers.each do |c|
       c.wrap_up
     end
-    @customers = []
-    @cooks.each do |c|
-      c.wrap_up
-    end
-    @waiters.each do |w|
-      w.wrap_up
-    end
     store_daily_metrics
+    new_day
   end
 
   def customer_appears
@@ -368,18 +370,21 @@ class Model
   end
 
   def avg_waiting_time
+    if @waiting_times.size == 0
+      return 0
+    end
     (@waiting_times.sum.to_f / @waiting_times.size).round
   end
 
   def avg_rating
+    if @ratings.size == 0
+      return 0
+    end
     (@ratings.sum.to_f / @ratings.size).round(1)
   end
 
   def store_daily_metrics
     @daily_metrics << DailyMetrics.new(@profit, @served, avg_rating, avg_waiting_time)
-    @profit = 0
-    @served = 0
-    @ratings = []
   end
 
   def run_a_day
@@ -413,7 +418,7 @@ class Model
   end
 
   def print_stats
-    unless DEBUG && STATS
+    unless STATS
       return
     end
 
