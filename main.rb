@@ -1,7 +1,9 @@
 #!/usr/bin/env ruby
 require 'logger'
+require 'sciruby'
+require 'json'
 
-STATS = true
+STATS = false
 
 class Order
   attr_accessor :customer
@@ -260,9 +262,9 @@ class Model
                 :prng, :profit, :daily_metrics, :waiting_times,
                 :logger
 
-  WAITERS_COUNT = 10
-  COOKS_COUNT = 20
-  TABLES_COUNT = 1000
+  WAITERS_COUNT = 1
+  COOKS_COUNT = 2
+  TABLES_COUNT = 10
   START_HOUR = 8
   END_HOUR = 20
   CLOSING_HOUR = 19
@@ -272,7 +274,7 @@ class Model
 
   START_TIME = Time.new(2022, mon=1, day=1, hour=8, min=0, sec=0)
 
-  DailyMetrics = Struct.new(:profit, :served, :avg_rating, :avg_waiting_time)
+  DailyMetrics = Struct.new(:profit, :served, :avg_rating, :avg_waiting_time, :popularity)
   Menu = Struct.new(:burgers, :fries, :drinks)
   MenuItem = Struct.new(:name, :prep_time, :price, :pm) #profit margin
 
@@ -289,7 +291,7 @@ class Model
 
     @prng = Random.new
     @ratings = [INITIAL_RATING] * INITIAL_RATINGS_COUNT
-    @popularity = INITIAL_POPULARITY
+    @popularity = nil
     @menu = Menu.new(Burgers, Fries, Drinks)
     @daily_metrics = []
 
@@ -306,6 +308,7 @@ class Model
   end
 
   def new_day
+    @logger.info{"Starting day " + @daily_metrics.size.to_s}
     @steps = 0
     @order_holder = []
     @ledge = []
@@ -313,6 +316,11 @@ class Model
     @waiting_times = []
     @profit = 0
     @served = 0
+    unless @popularity
+      @popularity = INITIAL_POPULARITY
+    else
+      @popularity += (avg_rating - 3) * @ratings.size * 1
+    end
     @ratings = []
     @cooks.each do |c|
       c.new_day
@@ -332,6 +340,7 @@ class Model
 
   def customer_appears
     unless @customers.size < TABLES_COUNT
+      @popularity -= 1
       return
     end
     c = Customer.new(self)
@@ -346,12 +355,11 @@ class Model
     if closing_time
       return
     end
-    10.times do
+    mean = @popularity.to_f / (wh * 60) # mean nr of customers per minute
+    n = Distribution::Poisson.rng(mean)
+    n.times do
       customer_appears
     end
-    # if @prng.rand(1) == 0 && @customers.size < TABLES_COUNT
-    #   customer_appears
-    # end
   end
 
   def step
@@ -384,7 +392,7 @@ class Model
   end
 
   def store_daily_metrics
-    @daily_metrics << DailyMetrics.new(@profit, @served, avg_rating, avg_waiting_time)
+    @daily_metrics << DailyMetrics.new(@profit, @served, avg_rating, avg_waiting_time, @popularity)
   end
 
   def run_a_day
@@ -462,7 +470,8 @@ class Model
 
   def print_daily_metrics
     @daily_metrics.each do |m|
-      print m.profit.round(2), "\t", m.served, "\t", m.avg_rating, "\t", m.avg_waiting_time, "\n"
+      print m.profit.round(2), "\t", m.served, "\t", m.avg_rating, "\t",
+            m.avg_waiting_time, "\t", m.popularity, "\n"
     end
   end
 
@@ -478,3 +487,5 @@ model = Model.new
 end
 
 model.print_daily_metrics
+
+puts model.json_daily_metrics
