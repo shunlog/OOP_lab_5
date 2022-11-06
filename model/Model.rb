@@ -34,15 +34,11 @@ class Model
   def initialize(cooks_count: 5,
                  waiters_count: 1,
                  tables_count: 20,
-                 initial_rating: 4.0,
-                 initial_ratings_count: 10,
                  initial_popularity: 10,
                  cook_salary: 80.0,
                  show_stats: false)
 
     @tables_count = tables_count
-    @initial_rating = initial_rating
-    @initial_ratings_count = initial_ratings_count
     @initial_popularity = initial_popularity # number of customers daily
     @cook_salary = cook_salary
 
@@ -51,7 +47,7 @@ class Model
     @show_stats = show_stats
 
     @prng = Random.new
-    @ratings = [@initial_rating] * @initial_ratings_count
+    @ratings = []
     @popularity = nil
     @menu = Menu.new(Burgers, Fries, Drinks)
     @daily_metrics = []
