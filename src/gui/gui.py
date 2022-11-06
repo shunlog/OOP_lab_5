@@ -14,9 +14,8 @@ def draw_figure(canvas, figure):
     return figure_canvas_agg
 
 def draw_plot(fig_agg, ax):
-    # ax.cla()
-    # ax.grid(True)
-
+    ax.cla()
+    ax.grid(True)
     with open("test.json") as f:
         df = pd.read_json(f)
     print(df)
