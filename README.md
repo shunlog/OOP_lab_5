@@ -1,24 +1,26 @@
 # OOP Lab 5
 
 ## Model execution
-Given these initial conditions:
+Given these initial conditions
 
 ``` python
-WAITERS_COUNT = 1
-TABLES_COUNT = 20
-START_HOUR = 8
-END_HOUR = 20
-CLOSING_HOUR = 19
-INITIAL_RATING = 4.0
-INITIAL_RATINGS_COUNT = 10
-INITIAL_POPULARITY = 10 # number of customers daily
-COOK_SALARY = 80.0
+DAYS=50
+COOKS_COUNT=5
+WAITERS_COUNT=1
+TABLES_COUNT=20
+INITIAL_RATING=4.0
+INITIAL_RATINGS_COUNT=100
+INITIAL_POPULARITY=20000
+COOK_SALARY=80.0
+SHOW_STATS=0
 ```
 
-The model produces the following results:
+Let's see how the model reacts to different values for `INITIAL_POPULARITY`.
 
-![Daily profits](./img/profits.png)
+![Initial popularity = 10](./img/new_slate.png)
 
-![Cumulative profits](./img/cumsum_profits.png)
+![Initial popularity = 160](./img/regular_day.png)
 
-From the second plot, it's clear that the optimal number of cooks for given initial conditions is **4**.
+![Initial popularity = 20000](./img/too_popular.png)
+
+We can see that in every case, the system stabilizes pretty fast at the same popularity of about `180` and oscillates between `160` and `200`.
