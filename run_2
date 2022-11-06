@@ -1,0 +1,3 @@
+#!/bin/bash
+
+./sim_2.rb | ./plot_2.py

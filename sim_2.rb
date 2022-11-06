@@ -1,9 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'logger'
-require 'sciruby'
-require 'json'
 require_relative 'Model'
 require_relative 'Order'
 require_relative 'Customer'

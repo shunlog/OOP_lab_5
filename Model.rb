@@ -1,6 +1,10 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require 'logger'
+require 'sciruby'
+require 'json'
+
 class Model
   attr_accessor :customers, :waiters, :cooks, :steps,
                 :menu, :order_holder, :ledge, :served,
@@ -212,7 +216,6 @@ class Model
   end
 
   def json_daily_metrics
-    hashified = @daily_metrics.map(&:to_h)
-    JSON.generate(hashified)
+    JSON.generate(daily_metrics_hash)
   end
 end
