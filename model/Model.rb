@@ -4,6 +4,10 @@
 require 'logger'
 require 'sciruby'
 require 'json'
+require_relative 'Order'
+require_relative 'Customer'
+require_relative 'Cook'
+require_relative 'Waiter'
 
 class Model
   attr_accessor :customers, :waiters, :cooks, :steps,
@@ -11,17 +15,9 @@ class Model
                 :prng, :profit, :daily_metrics, :waiting_times,
                 :logger
 
-  WAITERS_COUNT = 1
-  COOKS_COUNT = 5
-  TABLES_COUNT = 20
   START_HOUR = 8
   END_HOUR = 20
   CLOSING_HOUR = 19
-  INITIAL_RATING = 4.0
-  INITIAL_RATINGS_COUNT = 10
-  INITIAL_POPULARITY = 10 # number of customers daily
-  COOK_SALARY = 80.0
-
   START_TIME = Time.new(2022, mon = 1, day = 1, hour = 8, min = 0, sec = 0)
 
   DailyMetrics = Struct.new(:profit, :served, :avg_rating, :avg_waiting_time, :popularity)
@@ -35,19 +31,33 @@ class Model
   Drinks = [MenuItem.new('Overpriced tea', 1, 1.99, 0.9)] +
            [MenuItem.new('Overpriced drink', 1, 1.99, 0.9)]
 
-  def initialize(cooks_count: COOKS_COUNT, show_stats: false)
+  def initialize(cooks_count: 5,
+                 waiters_count: 1,
+                 tables_count: 20,
+                 initial_rating: 4.0,
+                 initial_ratings_count: 10,
+                 initial_popularity: 10,
+                 cook_salary: 80.0,
+                 show_stats: false)
+
+    @tables_count = tables_count
+    @initial_rating = initial_rating
+    @initial_ratings_count = initial_ratings_count
+    @initial_popularity = initial_popularity # number of customers daily
+    @cook_salary = cook_salary
+
     @logger = Logger.new($stdout)
     @logger.level = Logger::WARN
     @show_stats = show_stats
 
     @prng = Random.new
-    @ratings = [INITIAL_RATING] * INITIAL_RATINGS_COUNT
+    @ratings = [@initial_rating] * @initial_ratings_count
     @popularity = nil
     @menu = Menu.new(Burgers, Fries, Drinks)
     @daily_metrics = []
 
     @waiters = []
-    WAITERS_COUNT.times do
+    waiters_count.times do
       @waiters << Waiter.new(self)
     end
     @cooks = []
@@ -71,7 +81,7 @@ class Model
     if @popularity
       @popularity += (avg_rating - 3) * @ratings.size * 1
     else
-      @popularity = INITIAL_POPULARITY
+      @popularity = @initial_popularity
     end
     @ratings = []
     @cooks.each(&:new_day)
@@ -85,7 +95,7 @@ class Model
   end
 
   def customer_appears
-    unless @customers.size < TABLES_COUNT
+    unless @customers.size < @tables_count
       @popularity -= 1
       return
     end
@@ -129,7 +139,7 @@ class Model
   end
 
   def store_daily_metrics
-    profit = @profit - (@cooks.size * COOK_SALARY)
+    profit = @profit - (@cooks.size * @cook_salary)
     @daily_metrics << DailyMetrics.new(profit, @served, avg_rating, avg_waiting_time, @popularity)
   end
 
@@ -141,7 +151,7 @@ class Model
   end
 
   def day
-    @daily_metrics.size + 1
+    @daily_metrics.size
   end
 
   def wh
@@ -182,27 +192,27 @@ class Model
       ['', 'Waiting', @cooks.filter { |c| c.state == :waiting }.size.to_s],
       ['', 'Cooking', @cooks.filter { |c| c.state == :cooking }.size.to_s],
 
-      ['Tables', '', TABLES_COUNT.to_s],
-      ['', 'Free', (TABLES_COUNT - @customers.size).to_s],
+      ['Tables', '', @tables_count.to_s],
+      ['', 'Free', (@tables_count - @customers.size).to_s],
 
       ['Served', '', @served.to_s],
 
       ['Profit', '', @profit.round(2).to_s],
       ['Rating', '', avg_rating.to_s]
     ]
-
     w1 = 10
     w2 = 20
     w3 = 7
     ws = w1 + w2 + w3
-    puts "+#{'-' * (ws + 2)}+"
-    puts "|#{"Time: #{time}, Day: #{day}".center(ws + 2)}|"
-    puts "+#{'-' * (ws + 2)}+"
+    puts "+" + "-"*(ws+2) + "+"
+    puts "|" + "Time: #{time}, Day: #{day}".center(ws+2) + "|"
+    puts "+" + "-"*(ws+2) + "+"
     rows.each do |row|
       puts "|#{row[0].ljust(w1)}|#{row[1].ljust(w2)}|#{row[2].rjust(w3)}|"
     end
-    puts "+#{'-' * (ws + 2)}+"
+    puts "+" + "-"*(ws+2) + "+"
   end
+
 
   def print_daily_metrics
     @daily_metrics.each do |m|
