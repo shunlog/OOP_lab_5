@@ -17,10 +17,13 @@ SHOW_STATS=0
 
 Let's see how the model reacts to different values for `INITIAL_POPULARITY`.
 
-![Initial popularity = 10](./img/new_slate.png)
+`INITIAL_POPULARITY=10`
+![](./img/new_slate.png)
 
-![Initial popularity = 160](./img/regular_day.png)
+`INITIAL_POPULARITY=180`
+![](./img/regular_day.png)
 
-![Initial popularity = 20000](./img/too_popular.png)
+`INITIAL_POPULARITY=5000`
+![](./img/too_popular.png)
 
 We can see that in every case, the system stabilizes pretty fast at the same popularity of about `180` and oscillates between `160` and `200`.
