@@ -36,6 +36,7 @@ class Model
                  waiters_count: 1,
                  tables_count: 20,
                  initial_popularity: 10,
+                 population: 500,
                  cook_salary: 80.0,
                  show_stats: false,
                  stats_frequency: 60,
@@ -44,6 +45,7 @@ class Model
     @tables_count = tables_count
     @initial_popularity = initial_popularity # number of customers daily
     @cook_salary = cook_salary
+    @population = population
     @show_stats = show_stats
     @stats_frequency = stats_frequency
 
@@ -90,12 +92,31 @@ class Model
     @waiters.each(&:new_day)
   end
 
+  def pareto(x, xm, a)
+       if x >= xm
+         return (a * xm**a) / (x ** (a+1))
+       else
+         return 0
+       end
+  end
+
+  def population_ratio(rating)
+    xm = 1
+    a = 1.16
+    rating_filter = pareto(5.0+xm-rating, xm, a) / a
+    count_filter = rating_filter * [(@ratings.size.to_f / @population), 1.0].min
+    [count_filter, 1].min
+  end
+
   def new_day_new_popularity
-      new_pop = @popularity + (avg_rating - 3) * @ratings.size * 1
-      [new_pop, MIN_POPULARITY].max
+    pop = @population.to_f * population_ratio(avg_rating)
+    @logger.info { "New popularity of the restaurant is #{pop},\n\
+ given that the rating is #{avg_rating} and there are #{@population} people." }
+    pop
   end
 
   def wrap_up
+    print_stats
     @customers.each(&:wrap_up)
     store_daily_metrics
     new_day
@@ -121,7 +142,7 @@ class Model
   def customers_appear
     return if closing_time
 
-    mean = @popularity.to_f / (wh * 60) # mean nr of customers per minute
+    mean = @popularity.to_f / wm # mean nr of customers per minute
     n = Distribution::Poisson.rng(mean)
     n.times do
       customer_appears
@@ -133,6 +154,7 @@ class Model
   end
 
   def step
+    print_stats if @steps % @stats_frequency == 0
     @steps += 1
     customers_appear
     @waiters.each(&:step)
@@ -140,7 +162,6 @@ class Model
     @cooks.each(&:step)
     wrap_up if @steps % wm == 0
     start_closing if @steps == closing_min
-    print_stats
   end
 
   def avg_waiting_time
@@ -194,7 +215,6 @@ class Model
 
   def print_stats
     return unless @show_stats
-    return unless @steps % @stats_frequency == 0
 
     rows = [
       ['Customers', '', @customers.size.to_s],
