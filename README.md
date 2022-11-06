@@ -1,7 +1,13 @@
 # OOP Lab 5
+## System evolution
+One question we might ask is 
+> How does the system evolve given some particular initial parameters?
+Specifically, we can look at how the number of customers changes over time,
+and compare different situations:
+- it's a new restaurant and only a hanful of people know about it
+- the restaurant recently got lots of recognition due to a very successful ad
 
-## Model execution
-Given these initial conditions
+So, given these initial conditions
 
 ``` python
 DAYS=50
@@ -15,13 +21,17 @@ SHOW_STATS=0
 
 Let's see how the model reacts to different values for `INITIAL_POPULARITY`.
 
-`INITIAL_POPULARITY=10`
+For `INITIAL_POPULARITY=10`:
 ![](./img/new_slate.png)
 
-`INITIAL_POPULARITY=180`
-![](./img/regular_day.png)
-
-`INITIAL_POPULARITY=5000`
+For `INITIAL_POPULARITY=5000`:
 ![](./img/too_popular.png)
 
 We can see that in every case, the system stabilizes pretty fast at the same popularity of about `180` and oscillates between `160` and `200`.
+
+Of course, if we set `INITIAL_POPULARITY=180` right away, then the system doesn't evolve at all:
+![](./img/regular_day.png)
+
+## Optimal number of cooks
+Another interesting question we might ask, is 
+> What is the optimal number of cooks given a number of tables?
