@@ -1,3 +1,0 @@
-#!/bin/bash
-
-./src/sim_2.rb | ./src/plot_2.py
