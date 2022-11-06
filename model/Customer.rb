@@ -19,8 +19,6 @@ class Customer < Agent
   end
 
   def change_state(state)
-    @state_start = @model.steps
-    @state = state
     if state == :choosing_order
       @model.logger.info {"#{self} entered restaurant."}
     elsif state == :waiting_waiter
@@ -35,6 +33,8 @@ class Customer < Agent
       @waiting_time += @model.steps - @state_start
       @model.waiting_times << @waiting_time
     end
+    @state_start = @model.steps
+    @state = state
   end
 
   def decide_order
@@ -76,18 +76,18 @@ class Customer < Agent
   def wrap_up
     @model.rate(1)
     @model.served += 1
-    @model.waiting_times << @waiting_time
+    change_state(:exiting)
   end
 
   def rate
     ratio = @waiting_time.to_f / @order.prep_time
-    stars = if ratio < 2.5
+    stars = if ratio < 1.5
               5
-            elsif ratio < 3
+            elsif ratio < 2
               4
-            elsif ratio < 5
+            elsif ratio < 2.5
               3
-            elsif ratio < 7
+            elsif ratio < 3
               2
             else
               1

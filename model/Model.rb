@@ -15,6 +15,7 @@ class Model
                 :prng, :profit, :daily_metrics, :waiting_times,
                 :logger
 
+  MIN_POPULARITY = 10
   START_HOUR = 8
   END_HOUR = 20
   CLOSING_HOUR = 19
@@ -80,13 +81,18 @@ class Model
     @profit = 0
     @served = 0
     if @popularity
-      @popularity += (avg_rating - 3) * @ratings.size * 1
+      @popularity = new_day_new_popularity
     else
       @popularity = @initial_popularity
     end
-    @ratings = []
+    # @ratings = []
     @cooks.each(&:new_day)
     @waiters.each(&:new_day)
+  end
+
+  def new_day_new_popularity
+      new_pop = @popularity + (avg_rating - 3) * @ratings.size * 1
+      [new_pop, MIN_POPULARITY].max
   end
 
   def wrap_up

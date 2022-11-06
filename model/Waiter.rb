@@ -92,8 +92,7 @@ class Waiter < Agent
     if @state == :cleaning_table &&
        @model.steps - @state_start >= CLEANING_TIME
       change_state(:waiting)
-    end
-    if @state == :waiting
+    elsif @state == :waiting
       if customer_waiting_check
         bill_customer(customer_waiting_check)
         return

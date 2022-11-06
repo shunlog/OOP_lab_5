@@ -1,10 +1,10 @@
 #!/bin/bash
 
-export DAYS=50
-export COOKS_COUNT=5
+export DAYS=250
+export COOKS_COUNT=1
 export WAITERS_COUNT=1
-export TABLES_COUNT=20
-export INITIAL_POPULARITY=5000
+export TABLES_COUNT=30
+export INITIAL_POPULARITY=10
 export COOK_SALARY=80.0
 export SHOW_STATS=0
 
