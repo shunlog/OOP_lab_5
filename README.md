@@ -2,9 +2,10 @@
 ## System evolution
 One question we might ask is 
 > How does the system evolve given some particular initial parameters?
+
 Specifically, we can look at how the number of customers changes over time,
 and compare different situations:
-- it's a new restaurant and only a hanful of people know about it
+- it's a new restaurant and only a handful of people know about it
 - the restaurant recently got lots of recognition due to a very successful ad
 
 So, given these initial conditions
@@ -14,7 +15,6 @@ DAYS=50
 COOKS_COUNT=5
 WAITERS_COUNT=1
 TABLES_COUNT=20
-INITIAL_POPULARITY=20000
 COOK_SALARY=80.0
 SHOW_STATS=0
 ```
