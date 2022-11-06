@@ -33,10 +33,8 @@ def get_fig_agg(canvas_elem):
     return fig_agg, fig, ax
 
 def main():
-    layout = [[sg.Button('Exit'),
-               sg.Button('Plot')],
-              [sg.Canvas(key='-CANVAS1-'),
-               sg.Canvas(key='-CANVAS2-')]]
+    layout = [[[[sg.Button('Exit')], [sg.Button('Plot')]]],
+              [[[sg.Canvas(key='-CANVAS1-')], [sg.Canvas(key='-CANVAS2-')]]]]
 
     window = sg.Window('Demo Application - Embedding Matplotlib In PySimpleGUI', layout, finalize=True)
 
