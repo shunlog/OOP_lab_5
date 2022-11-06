@@ -1,72 +1,79 @@
 # OOP Lab 5
 ## Results
+Once we have a working model, we can use it to analyze different scenarios and answer all sorts of interesting questions.
 ### Popularity over time
-One question we might ask is 
+One question we might ask is
 > How does the system evolve given some particular initial parameters?
 
 Specifically, we can look at how the number of customers changes over time,
-and compare different situations:
+and compare two different situations:
 - it's a new restaurant and only a handful of people know about it
 - the restaurant recently got lots of recognition due to a very successful ad
 
-So, given these initial conditions
+So, given these initial conditions:
 
 ``` python
-DAYS=50
-COOKS_COUNT=5
+DAYS=100
+COOKS_COUNT=1
 WAITERS_COUNT=1
-TABLES_COUNT=20
+TABLES_COUNT=10
 COOK_SALARY=80.0
+SHOW_STATS=0
 ```
 
-Let's see how the model reacts to different values for `INITIAL_POPULARITY`.
+Let's see how the model behaves for different values of `INITIAL_POPULARITY`.
 
-For `INITIAL_POPULARITY=10`:
-![](./img/new_slate.png)
+For `INITIAL_POPULARITY=10`, there is a steady raise in popularity,
+![](./img/10pop.png)
 
-For `INITIAL_POPULARITY=5000`:
-![](./img/too_popular.png)
+For `INITIAL_POPULARITY=100`, popularity dips, but then settles at 40.
+![](./img/100pop.png)
 
-We can see that in every case, the system stabilizes pretty fast at the same popularity of about `180` and oscillates between `160` and `200`.
+We can see that in each case, the system stabilizes pretty fast at the same popularity of ≈40.
+Notice how in fact, all the parameters settle at about the same values.
+Therefore, the system has a tendency to become stable, no matter the initial popularity.
 
-Of course, if we set `INITIAL_POPULARITY=180` right away, then the system doesn't evolve at all:
-![](./img/regular_day.png)
+Interestingly, if we set `INITIAL_POPULARITY=40`, instead of staying the same, the popularity dips quite a lot before recovering back to `40`. 
+
+![](./img/40pop.png)
+
+This probably has to do with the initially low rating count, which allows the restaurant to get too much attention which it can't handle, and most people get disappointed by the high queues, so the popularity drops dramatically.
+Of course, in the real world, not every customer leaves a rating, and the popularity doesn't depend solely on the average rating.
 
 ### Optimal number of cooks
-Another interesting question we might ask, is 
+Another interesting question one might ask, is 
 > What is the optimal number of cooks given a number of tables?
 
 Of course, optimal in this case means maximizing profits.
 
 So, let's see what's the optimal number of cooks for a small restaurant with 10 tables,
-that has these initial conditions:
-
+that has the following parameters:
 ``` python
-DAYS=50
-MIN_COOKS=27
-MAX_COOKS=35
+DAYS=100
+MIN_COOKS=1
+MAX_COOKS=7
 COOKS_INTERVAL=1
-WAITERS_COUNT=1
+WAITERS_COUNT=2
 TABLES_COUNT=10
-INITIAL_POPULARITY=180
+INITIAL_POPULARITY=10
 COOK_SALARY=80.0
 ```
 
 ![](./img/10tables.png)
 
-It's clear that the optimal number of cooks in this case is **3**.
+It's clear that the optimal number of cooks in this case is **2**.
 
-What about 100 tables?
-After a bit of trial and error, I arrived at this graph:
-![](./img/100tables.png)
+What about a bigger restaurant, say, 50 tables?
+By tweaking the parameters so it doesn't take too long to run the simulation, I arrived at this graph:
+![](./img/50tables.png)
 
-It's not very clear, but if we zoom in, we see that the optimal number of cooks is about 31-33.
-
-![](./img/100tables_zoomed.png)
-
+The optimal number of cooks for 50 tables turns out to be around **11**.
 Therefore we can extrapolate that our system turned out pretty linear,
-requiring ≈3.2 cooks for every 10 tables,
+requiring a cook for every ≈5 tables,
+no matter how many tables,
 which is not very interesting.
+However, this was to be expected as the model is not very complex
+and has little to no randomness involved.
 
 ## Running the simulation
 To run the simulation, simply instance the model with the wanted parameters and call the `step` or `run_a_day` methods, like this:

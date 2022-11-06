@@ -1,11 +1,11 @@
 #!/bin/bash
 
-export DAYS=50
-export MIN_COOKS=1
-export MAX_COOKS=15
-export COOKS_INTERVAL=2
+export DAYS=40
+export MIN_COOKS=8
+export MAX_COOKS=20
+export COOKS_INTERVAL=3
 export WAITERS_COUNT=10
-export TABLES_COUNT=20
+export TABLES_COUNT=50
 export INITIAL_POPULARITY=10
 export COOK_SALARY=80.0
 

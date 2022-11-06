@@ -118,6 +118,7 @@ class Model
   def wrap_up
     print_stats
     @customers.each(&:wrap_up)
+    pay_cooks
     store_daily_metrics
     new_day
   end
@@ -176,8 +177,11 @@ class Model
     (@ratings.sum.to_f / @ratings.size).round(1)
   end
 
+  def pay_cooks
+    @profit -= @cooks.size * @cook_salary
+  end
+
   def store_daily_metrics
-    profit = @profit - (@cooks.size * @cook_salary)
     @daily_metrics << DailyMetrics.new(profit, @served, avg_rating, avg_waiting_time, @popularity, @ratings.dup)
   end
 
@@ -188,6 +192,7 @@ class Model
   end
 
   def day
+    # 1-indexed
     @daily_metrics.size + 1
   end
 

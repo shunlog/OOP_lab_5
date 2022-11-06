@@ -15,4 +15,5 @@ for key in data:
     df['profit'].plot(label=key, ax=axs[0], ylabel='Profit')
     df['cumsum_profit'].plot(label='', ax=axs[1], ylabel='Cumulative profit')
 fig.legend(title="# of cooks")
+plt.xlabel("Days")
 plt.show()
