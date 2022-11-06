@@ -1,23 +1,24 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require_relative 'Model'
-require_relative 'Order'
-require_relative 'Customer'
-require_relative 'Cook'
-require_relative 'Waiter'
+require_relative 'model/Model'
 
-def run_for_varying_cooks(min_cooks: 1, max_cooks: 7, days: 10)
-  hash = {}
-  (min_cooks..max_cooks).step do |i|
-    model = Model.new(cooks_count: i)
-    days.times do
-      model.run_a_day
-    end
-    hash[i.to_s] = model.daily_metrics_hash
+min_cooks = ENV['MIN_COOKS'].to_i
+max_cooks = ENV['MAX_COOKS'].to_i
+days = ENV['DAYS'].to_i
+
+hash = {}
+(min_cooks..max_cooks).step do |i|
+  model = Model.new(cooks_count: i,
+                    waiters_count: ENV['WAITERS_COUNT'].to_i,
+                    tables_count: ENV['TABLES_COUNT'].to_i,
+                    initial_popularity: ENV['INITIAL_POPULARITY'].to_i,
+                    cook_salary: ENV['COOK_SALARY'].to_f,
+                    show_stats: ENV['SHOW_STATS']=='0' ? false : true)
+  days.times do
+    model.run_a_day
   end
-  hash
+  hash[i.to_s] = model.daily_metrics_hash
 end
 
-hash = run_for_varying_cooks
 puts JSON.generate(hash)

@@ -7,18 +7,12 @@ import matplotlib.pyplot as plt
 
 data = json.load(sys.stdin)
 
-cumulative = False
+fig, axs = plt.subplots(2, 1, sharex=True)
 
 for key in data:
     df = pd.DataFrame(data[key])
-    if cumulative:
-        df['profit'] = df['profit'].cumsum()
-    df['profit'].plot(label=key)
-plt.xlabel("Days")
-if cumulative:
-    label = "Cumulative profit"
-else:
-    label = "Daily profit"
-plt.ylabel(label)
-plt.legend(title="# of cooks")
+    df['cumsum_profit'] = df['profit'].cumsum()
+    df['profit'].plot(label=key, ax=axs[0], ylabel='Profit')
+    df['cumsum_profit'].plot(label='', ax=axs[1], ylabel='Cumulative profit')
+fig.legend(title="# of cooks")
 plt.show()
