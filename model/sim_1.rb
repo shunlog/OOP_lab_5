@@ -2,10 +2,6 @@
 # frozen_string_literal: true
 
 require_relative 'Model'
-require_relative 'Order'
-require_relative 'Customer'
-require_relative 'Cook'
-require_relative 'Waiter'
 
 model = Model.new()
 100.times do
