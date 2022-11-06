@@ -11,7 +11,6 @@ def plot(json):
 
     plt.xlabel("Days")
     plt.ylabel("Daily profit")
-    plt.legend(title="# of cooks")
 
 if __name__ == "__main__":
     plot(sys.stdin)

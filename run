@@ -1,0 +1,12 @@
+#!/bin/bash
+
+export COOKS_COUNT=5
+export WAITERS_COUNT=1
+export TABLES_COUNT=20
+export INITIAL_RATING=4.0
+export INITIAL_RATINGS_COUNT=10
+export INITIAL_POPULARITY=10
+export COOK_SALARY=80.0
+export SHOW_STATS=0
+
+./main.rb | ./plot_1.py
