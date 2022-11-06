@@ -160,11 +160,7 @@ class Model
 
   def time
     t = START_TIME
-    t += if day.zero?
-           @steps * 60
-         else
-           @steps.remainder(day) * 60
-         end
+    t += @steps * 60
     t += day * 60 * 60 * 24
     t.strftime '%H:%M'
   end
