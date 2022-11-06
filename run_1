@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./sim_1.rb | ./plot_1.py
+./src/sim_1.rb | ./src/plot_1.py
