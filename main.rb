@@ -11,7 +11,8 @@ model = Model.new(cooks_count: ENV['COOKS_COUNT'].to_i,
                   cook_salary: ENV['COOK_SALARY'].to_f,
                   show_stats: ENV['SHOW_STATS']=='0' ? false : true)
 
-10.times do
+days = ENV['DAYS'].to_i
+days.times do
   model.run_a_day
 end
 puts model.json_daily_metrics

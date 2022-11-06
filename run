@@ -1,5 +1,6 @@
 #!/bin/bash
 
+export DAYS=50
 export COOKS_COUNT=5
 export WAITERS_COUNT=1
 export TABLES_COUNT=20

@@ -20,7 +20,7 @@ class Model
   CLOSING_HOUR = 19
   START_TIME = Time.new(2022, mon = 1, day = 1, hour = 8, min = 0, sec = 0)
 
-  DailyMetrics = Struct.new(:profit, :served, :avg_rating, :avg_waiting_time, :popularity)
+  DailyMetrics = Struct.new(:profit, :served, :avg_rating, :avg_waiting_time, :popularity, :ratings)
   Menu = Struct.new(:burgers, :fries, :drinks)
   MenuItem = Struct.new(:name, :prep_time, :price, :pm) # profit margin
 
@@ -140,7 +140,7 @@ class Model
 
   def store_daily_metrics
     profit = @profit - (@cooks.size * @cook_salary)
-    @daily_metrics << DailyMetrics.new(profit, @served, avg_rating, avg_waiting_time, @popularity)
+    @daily_metrics << DailyMetrics.new(profit, @served, avg_rating, avg_waiting_time, @popularity, @ratings)
   end
 
   def run_a_day
