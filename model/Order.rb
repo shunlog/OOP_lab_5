@@ -9,6 +9,10 @@ class Order
     @items = items
   end
 
+  def to_s
+    "Order #{self.object_id}"
+  end
+
   def prep_time
     @items.sum(&:prep_time)
   end

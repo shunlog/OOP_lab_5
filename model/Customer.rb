@@ -9,10 +9,32 @@ class Customer < Agent
 
   def initialize(model)
     super
-    @state = :choosing_order
-    @state_start = @model.steps
+    change_state(:choosing_order)
     @waiting_time = 0
     @order = nil
+  end
+
+  def to_s
+    "Customer #{self.object_id}"
+  end
+
+  def change_state(state)
+    @state_start = @model.steps
+    @state = state
+    if state == :choosing_order
+      @model.logger.info {"#{self} entered restaurant."}
+    elsif state == :waiting_waiter
+      @model.logger.info {"#{self} decided what to order."}
+    elsif state == :waiting_food
+      @waiting_time += @model.steps - @state_start
+    elsif state == :eating
+      @waiting_time += @model.steps - @state_start
+    elsif state == :waiting_check
+      @model.logger.info {"#{self} finished eating and asked for the check."}
+    elsif state == :exiting
+      @waiting_time += @model.steps - @state_start
+      @model.waiting_times << @waiting_time
+    end
   end
 
   def decide_order
@@ -30,29 +52,24 @@ class Customer < Agent
       items += [@model.menu.drinks.sample]
     end
     @order = Order.new(self, items)
-    @state = :waiting_waiter
+    change_state(:waiting_waiter)
   end
 
   def order
-    @waiting_time += @model.steps - @state_start
-    @state = :waiting_food
+    change_state(:waiting_food)
     @order
   end
 
   def serve
-    @waiting_time += @model.steps - @state_start
-    @state = :eating
-    @state_start = @model.steps
+    change_state(:eating)
   end
 
   def finish_eating
-    @state = :waiting_check
-    @state_start = @model.steps
+    change_state(:waiting_check)
   end
 
   def pay
-    @waiting_time += @model.steps - @state_start
-    @model.waiting_times << @waiting_time
+    change_state(:exiting)
     @order.cost
   end
 

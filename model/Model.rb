@@ -36,15 +36,21 @@ class Model
                  tables_count: 20,
                  initial_popularity: 10,
                  cook_salary: 80.0,
-                 show_stats: false)
+                 show_stats: false,
+                 stats_frequency: 60,
+                 logger_level: Logger::WARN)
 
     @tables_count = tables_count
     @initial_popularity = initial_popularity # number of customers daily
     @cook_salary = cook_salary
+    @show_stats = show_stats
+    @stats_frequency = stats_frequency
 
     @logger = Logger.new($stdout)
-    @logger.level = Logger::WARN
-    @show_stats = show_stats
+    @logger.level = logger_level
+    logger.formatter = proc do |severity, datetime, progname, msg|
+      ">>> Day #{day} -- #{time}: #{msg}\n"
+    end
 
     @prng = Random.new
     @ratings = []
@@ -57,7 +63,6 @@ class Model
       @waiters << Waiter.new(self)
     end
     @cooks = []
-    @logger.info { cooks_count }
     cooks_count.times do
       @cooks << Cook.new(self)
     end
@@ -66,7 +71,7 @@ class Model
   end
 
   def new_day
-    @logger.info { "Starting day #{@daily_metrics.size}" }
+    @logger.info { "Starting day #{day}" }
     @steps = 0
     @order_holder = []
     @ledge = []
@@ -99,8 +104,12 @@ class Model
     @customers << c
   end
 
+  def closing_min
+    (CLOSING_HOUR - START_HOUR) * 60
+  end
+
   def closing_time
-    (START_HOUR + @steps) > ((CLOSING_HOUR - START_HOUR) * 60)
+    @steps > closing_min
   end
 
   def customers_appear
@@ -113,13 +122,19 @@ class Model
     end
   end
 
+  def start_closing
+    @logger.info { "Starting closing. Customers can't enter anymore." }
+  end
+
   def step
+    @steps += 1
     customers_appear
     @waiters.each(&:step)
     @customers.each(&:step)
     @cooks.each(&:step)
+    wrap_up if @steps % wm == 0
+    start_closing if @steps == closing_min
     print_stats
-    @steps += 1
   end
 
   def avg_waiting_time
@@ -143,21 +158,27 @@ class Model
     (wh * 60).times do
       step
     end
-    wrap_up
   end
 
   def day
-    @daily_metrics.size
+    @daily_metrics.size + 1
   end
 
   def wh
     END_HOUR - START_HOUR
   end
 
+  def wm
+    wh * 60
+  end
+
   def time
+    if @steps.nil?
+      @steps = 0
+    end
     t = START_TIME
     t += @steps * 60
-    t += day * 60 * 60 * 24
+    t += (day - 1) * 60 * 60 * 24
     t.strftime '%H:%M'
   end
 
@@ -167,6 +188,7 @@ class Model
 
   def print_stats
     return unless @show_stats
+    return unless @steps % @stats_frequency == 0
 
     rows = [
       ['Customers', '', @customers.size.to_s],

@@ -5,16 +5,19 @@ require_relative 'Agent'
 
 class Waiter < Agent
   Order = Struct.new(:customer, :items)
-  CLEANING_TIME = 2
+  CLEANING_TIME = 5
 
   def initialize(model)
     super
-    @state = :waiting
-    @orders = []
+    new_day
+  end
+
+  def to_s
+    "Waiter #{self.object_id}"
   end
 
   def new_day
-    @state = :waiting
+    change_state(:waiting)
     @orders = []
   end
 
@@ -42,18 +45,21 @@ class Waiter < Agent
 
   def take_order(customer)
     @orders << customer.order
+    @model.logger.info {"#{self} took #{customer}'s order."}
   end
 
   def leave_orders
     @orders.each do |o|
       @model.order_holder << o
     end
+    @model.logger.info {"#{self} left #{@orders.size} orders in the order holder."}
     @orders = []
   end
 
   def serve_an_order
     order = @model.ledge.pop
     order.customer.serve
+    @model.logger.info {"#{self} served order to #{order.customer}."}
   end
 
   def bill_customer(customer)
@@ -62,18 +68,30 @@ class Waiter < Agent
     @model.profit += s
     @model.served += 1
     @model.customers.delete(customer)
+    @model.logger.info {"#{self} billed #{customer}."}
     clean_table
   end
 
   def clean_table
-    @state = :cleaning_table
+    change_state(:cleaning_table)
+  end
+
+  def change_state(state)
+    if state == :waiting
+      if @state == :cleaning_table
+        @model.logger.info {"#{self} finished cleaning the table."}
+      end
+    elsif state == :cleaning_table
+      @model.logger.info {"#{self} started cleaning the table."}
+    end
     @state_start = @model.steps
+    @state = state
   end
 
   def step
     if @state == :cleaning_table &&
        @model.steps - @state_start >= CLEANING_TIME
-      @state = :waiting
+      change_state(:waiting)
     end
     if @state == :waiting
       if customer_waiting_check
