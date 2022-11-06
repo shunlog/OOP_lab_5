@@ -1,12 +1,13 @@
 #!/bin/bash
 
 export DAYS=50
-export MIN_COOKS=1
-export MAX_COOKS=7
-export WAITERS_COUNT=1
-export TABLES_COUNT=20
+export MIN_COOKS=27
+export MAX_COOKS=35
+export COOKS_INTERVAL=1
+export WAITERS_COUNT=10
+export TABLES_COUNT=100
 export INITIAL_POPULARITY=180
-export COOK_SALARY=200.0
+export COOK_SALARY=80.0
 export SHOW_STATS=0
 
 ./main2.rb | ./plot_2.py
