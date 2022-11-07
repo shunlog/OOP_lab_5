@@ -74,7 +74,6 @@ class Model
   end
 
   def new_day
-    @logger.info { "Starting day #{day}" }
     @steps = 0
     @order_holder = []
     @ledge = []
@@ -90,6 +89,7 @@ class Model
     # @ratings = []
     @cooks.each(&:new_day)
     @waiters.each(&:new_day)
+    @logger.info { "Starting day #{day}" }
   end
 
   def pareto(x, xm, a)
@@ -160,8 +160,8 @@ class Model
     @waiters.each(&:step)
     @customers.each(&:step)
     @cooks.each(&:step)
-    wrap_up if @steps % wm == 0
     start_closing if @steps == closing_min
+    wrap_up if @steps % wm == 0
   end
 
   def avg_waiting_time
@@ -178,7 +178,7 @@ class Model
 
   def store_daily_metrics
     profit = @profit - (@cooks.size * @cook_salary)
-    @daily_metrics << DailyMetrics.new(profit, @served, avg_rating, avg_waiting_time, @popularity, @ratings)
+    @daily_metrics << DailyMetrics.new(profit, @served, avg_rating, avg_waiting_time, @popularity, @ratings.dup)
   end
 
   def run_a_day
