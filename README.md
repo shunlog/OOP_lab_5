@@ -68,8 +68,22 @@ Therefore we can extrapolate that our system turned out pretty linear,
 requiring ≈3.2 cooks for every 10 tables,
 which is not very interesting.
 
-## Simulation
-Here is an excerpt of the logs of a simulation run:
+## Running the simulation
+To run the simulation, simply instance the model with the wanted parameters and call the `step` or `run_a_day` methods, like this:
+``` ruby
+require_relative 'model/Model'
+model = Model.new(cooks_count: 1,
+                  waiters_count: 1,
+                  tables_count: 10,
+                  initial_popularity: 10,
+                  show_stats: true,
+                  logger_level: Logger::INFO)
+2.times do
+  model.run_a_day
+end
+```
+
+Here is an example of the output logs:
 ``` text
 >>> Day 2 -- 18:25: Customer 860 entered restaurant.
 >>> Day 2 -- 18:30: Customer 860 decided what to order.
@@ -107,4 +121,34 @@ Here is an excerpt of the logs of a simulation run:
 >>> Day 3 -- 20:00: Starting day 3
 >>> Day 3 -- 08:00: New popularity of the restaurant is 10.791665891967982,
  given that the rating is 4.8 and there are 500 people.
+```
+
+The model stores some interesting metrics for every simulated "day", which can be obtained in JSON:
+``` json
+[
+  {
+    "profit": 29.66000000000001,
+    "served": 12,
+    "avg_rating": 4.7,
+    "avg_waiting_time": 25,
+    "popularity": 10,
+    "ratings": [5, 5, 5, 5, 5, 4, 5, 5, 4, 5, 3, 5]
+  },
+  {
+    "profit": -25.190000000000005,
+    "served": 6,
+    "avg_rating": 4.6,
+    "avg_waiting_time": 28,
+    "popularity": 6.808690688028349,
+    "ratings": [5, 5, 5, 5, 5, 4, 5, 5, 4, 5, 3, 5, 5, 5, 3, 4, 5, 5]
+  },
+  {
+    "profit": 11.709999999999994,
+    "served": 11,
+    "avg_rating": 4.6,
+    "avg_waiting_time": 23,
+    "popularity": 8.702338013963548,
+    "ratings": [5, 5, 5, 5, 5, 4, 5, 5, 4, 5, 3, 5, 5, 5, 3, 4, 5, 5, 5, 3, 5, 5, 5, 5, 4, 5, 5, 5, 3]
+  }
+]
 ```
