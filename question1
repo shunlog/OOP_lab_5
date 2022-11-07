@@ -1,0 +1,11 @@
+#!/bin/bash
+
+export DAYS=36
+export COOKS_COUNT=1
+export WAITERS_COUNT=1
+export TABLES_COUNT=10
+export INITIAL_POPULARITY=10
+export COOK_SALARY=80.0
+export SHOW_STATS=0
+
+./question1.rb | ./question1_viz.py

@@ -3,15 +3,16 @@
 
 require_relative 'model/Model'
 
-model = Model.new(cooks_count: ENV['COOKS_COUNT'].to_i,
-                  waiters_count: ENV['WAITERS_COUNT'].to_i,
-                  tables_count: ENV['TABLES_COUNT'].to_i,
-                  initial_popularity: ENV['INITIAL_POPULARITY'].to_i,
-                  cook_salary: ENV['COOK_SALARY'].to_f,
-                  show_stats: ENV['SHOW_STATS']=='0' ? false : true)
+model = Model.new(show_stats: true,
+                  cooks_count: 1,
+                  waiters_count: 1,
+                  tables_count: 10000,
+                  initial_popularity: 100000,
+                  stats_frequency: 120,
+                  logger_level: Logger::INFO)
 
-days = ENV['DAYS'].to_i
+days = 2
+
 days.times do
   model.run_a_day
 end
-puts model.json_daily_metrics
