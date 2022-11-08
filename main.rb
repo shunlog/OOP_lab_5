@@ -11,8 +11,12 @@ model = Model.new(show_stats: true,
                   stats_frequency: 120,
                   logger_level: Logger::INFO)
 
-days = 2
+# days = 2
+# days.times do
+#   model.run_a_day
+# end
 
-days.times do
-  model.run_a_day
+while true do
+  model.step
+  sleep(0.01)
 end
