@@ -1,7 +1,8 @@
-# OOP Lab 5
-## Results
+OOP Lab 5.
+
+# Results
 Once we have a working model, we can use it to analyze different scenarios and answer all sorts of interesting questions.
-### Popularity over time
+## Popularity over time
 One question we might ask is
 > How does the system evolve given some particular initial parameters?
 
@@ -40,7 +41,7 @@ Interestingly, if we set `INITIAL_POPULARITY=40`, instead of staying the same, t
 This probably has to do with the initially low rating count, which allows the restaurant to get too much attention which it can't handle, and most people get disappointed by the high queues, so the popularity drops dramatically.
 Of course, in the real world, not every customer leaves a rating, and the popularity doesn't depend solely on the average rating.
 
-### Optimal number of cooks
+## Optimal number of cooks
 Another interesting question one might ask, is 
 > What is the optimal number of cooks given a number of tables?
 
@@ -75,7 +76,7 @@ which is not very interesting.
 However, this was to be expected as the model is not very complex
 and has little to no randomness involved.
 
-## Running the simulation
+# Running the simulation
 To run the simulation, simply instance the model with the wanted parameters and call the `step` or `run_a_day` methods, like this:
 ``` ruby
 require_relative 'model/Model'
@@ -159,3 +160,37 @@ The model stores some interesting metrics for every simulated "day", which can b
   }
 ]
 ```
+# Model description 
+
+An picture is worth a thousand words, so here is the class diagram of the restaurant model:
+
+![](./img/classes.png)
+
+The restaurant functions in the following way:
+- At the beginning of the day,
+  the popularity of the restaurant is decided
+  based on the average rating.
+  Popularity represents the average number of customers
+  that will arrive on that day.
+- Customers arrive at different times during the day
+   according to a poisson distribution.
+- Customers take their time (5 minutes) to decide what to order
+  (1 burger, 0 or 1 drink, and 1 or 2 fries),
+   then the waiter takes their order and puts it in the "order holder".
+- Cooks take one order at a time, cook it,
+  and put the food on the "ledge" when it's done,
+  where waiter takes it to the customer.
+- After eating (30 minutes), the customers pay the check and rate the restaurant,
+  based on how long they waited to be served.
+- When the restaurant closes for the day,
+  all the customers are cicked out (the popularity suffers),
+  the cooks and waiters return to their idle state,
+  the profits are stored in the safe (logged in array and variable is zeroed out),
+  and the metrics are storred in an array.
+
+Notes:
+- Customer arrivals distribution can't be modeled accurately using poisson,
+  because the the rate is not constant ‐
+  there are more customers during lunch hours,
+  and much less during opening and closing.
+  However, it's much simpler to use than trying to model a beta distribution with 3 spikes.
