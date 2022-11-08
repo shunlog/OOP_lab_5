@@ -64,7 +64,7 @@ COOK_SALARY=80.0
 
 It's clear that the optimal number of cooks in this case is **2**.
 
-What about a bigger restaurant, say, 50 tables?
+What about a bigger restaurant with, say, 50 tables?
 By tweaking the parameters so it doesn't take too long to run the simulation, I arrived at this graph:
 ![](./img/50tables.png)
 
@@ -77,6 +77,7 @@ However, this was to be expected as the model is not very complex
 and has little to no randomness involved.
 
 # Running the simulation
+## From a ruby file
 To run the simulation, simply instance the model with the wanted parameters and call the `step` or `run_a_day` methods, like this:
 ``` ruby
 require_relative 'model/Model'
@@ -90,8 +91,13 @@ model = Model.new(cooks_count: 1,
   model.run_a_day
 end
 ```
-
-Here is an example of the output logs:
+## From a bash script
+The parameters can't be passed in using environment variables, which is useful for scripting.
+For example, the `question1` file runs the simulation given a set of input parameters,
+and then passes the output JSON to a python script which draws the graphs seen previously.
+## Output
+### Logs
+Passing `logger_level: Logger::INFO` to the model tells it to output logs that look like this:
 ``` text
 >>> Day 2 -- 18:25: Customer 860 entered restaurant.
 >>> Day 2 -- 18:30: Customer 860 decided what to order.
@@ -131,7 +137,11 @@ Here is an example of the output logs:
  given that the rating is 4.8 and there are 500 people.
 ```
 
-The model stores some interesting metrics for every simulated "day", which can be obtained in JSON:
+### Stats in JSON 
+If instead you want to analyze the output in another program, say, graph it,
+you can obtain the data in JSON using the `json_daily_metrics` method.
+
+Here is an example of the output data:
 ``` json
 [
   {
@@ -161,7 +171,6 @@ The model stores some interesting metrics for every simulated "day", which can b
 ]
 ```
 # Model description 
-
 An picture is worth a thousand words, so here is the class diagram of the restaurant model:
 
 ![](./img/classes.png)
@@ -173,7 +182,7 @@ The restaurant functions in the following way:
   Popularity represents the average number of customers
   that will arrive on that day.
 - Customers arrive at different times during the day
-   according to a poisson distribution.
+   according to a Poisson distribution.
 - Customers take their time (5 minutes) to decide what to order
   (1 burger, 0 or 1 drink, and 1 or 2 fries),
    then the waiter takes their order and puts it in the "order holder".
@@ -189,7 +198,7 @@ The restaurant functions in the following way:
   and the metrics are storred in an array.
 
 Notes:
-- Customer arrivals distribution can't be modeled accurately using poisson,
+- Customer arrivals distribution can't be modeled accurately using Poisson,
   because the the rate is not constant ‐
   there are more customers during lunch hours,
   and much less during opening and closing.
