@@ -1,5 +1,60 @@
-OOP Lab 5.
+A model of a dining restaurant written in Ruby.
+It can be used to simulate a restaurant given a set of input parameters:
+- Cooks count
+- Waiters count
+- Tables count
+- Initial popularity
+  - Number of people that will visit the restaurant in the first day.
+- Population
+  - The maximum number of people that could come to the restaurant in a single day.
+- Cook salary
+  - Measured in units of currency per day.
 
+Aside from logs of what's happening internally, the model outputs a list of statistics stored for every simulated day:
+- Profit
+  - How many units of currency the restaurant made that day minus the cook salary.
+- Served customers count
+- Average rating
+- Average waiting time
+  - How long customers have waited for the waiters (take their order, bring their food, bring their check) on average
+- Popularity
+- Ratings
+
+# Model description 
+
+The restaurant functions in the following way:
+- At the beginning of the day,
+  the popularity of the restaurant is decided
+  based on the average rating.
+  Popularity represents the average number of customers
+  that will arrive on that day.
+- Customers arrive at different times during the day
+   according to a Poisson distribution.
+- Customers take their time (5 minutes) to decide what to order
+  (1 burger, 0 or 1 drink, and 1 or 2 fries),
+   then the waiter takes their order and puts it in the "order holder".
+- Cooks take one order at a time, cook it,
+  and put the food on the "ledge" when it's done,
+  where waiter takes it to the customer.
+- After eating (30 minutes), the customers pay the check and rate the restaurant,
+  based on how long they waited to be served.
+- When the restaurant closes for the day,
+  all the customers are cicked out (the popularity suffers),
+  the cooks and waiters return to their idle state,
+  the profits are stored in the safe (logged in array and variable is zeroed out),
+  and the metrics are storred in an array.
+
+Notes:
+- Customer arrivals distribution can't be modeled accurately using Poisson,
+  because the the rate is not constant ‐
+  there are more customers during lunch hours,
+  and much less during opening and closing.
+  However, it's much simpler to use than trying to model a beta distribution with 3 spikes.
+
+## Classes
+An picture is worth a thousand words, so here is the class diagram of the restaurant model:
+
+![](./img/classes.png)
 # Results
 Once we have a working model, we can use it to analyze different scenarios and answer all sorts of interesting questions.
 ## Popularity over time
@@ -170,36 +225,3 @@ Here is an example of the output data:
   }
 ]
 ```
-# Model description 
-An picture is worth a thousand words, so here is the class diagram of the restaurant model:
-
-![](./img/classes.png)
-
-The restaurant functions in the following way:
-- At the beginning of the day,
-  the popularity of the restaurant is decided
-  based on the average rating.
-  Popularity represents the average number of customers
-  that will arrive on that day.
-- Customers arrive at different times during the day
-   according to a Poisson distribution.
-- Customers take their time (5 minutes) to decide what to order
-  (1 burger, 0 or 1 drink, and 1 or 2 fries),
-   then the waiter takes their order and puts it in the "order holder".
-- Cooks take one order at a time, cook it,
-  and put the food on the "ledge" when it's done,
-  where waiter takes it to the customer.
-- After eating (30 minutes), the customers pay the check and rate the restaurant,
-  based on how long they waited to be served.
-- When the restaurant closes for the day,
-  all the customers are cicked out (the popularity suffers),
-  the cooks and waiters return to their idle state,
-  the profits are stored in the safe (logged in array and variable is zeroed out),
-  and the metrics are storred in an array.
-
-Notes:
-- Customer arrivals distribution can't be modeled accurately using Poisson,
-  because the the rate is not constant ‐
-  there are more customers during lunch hours,
-  and much less during opening and closing.
-  However, it's much simpler to use than trying to model a beta distribution with 3 spikes.
