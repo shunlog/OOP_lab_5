@@ -2,7 +2,7 @@
 # frozen_string_literal: true
 
 class Agent
-  attr_accessor :state
+  attr_reader :state
 
   def initialize(model)
     @model = model
