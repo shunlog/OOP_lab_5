@@ -52,9 +52,12 @@ Notes:
   However, it's much simpler to use than trying to model a beta distribution with 3 spikes.
 
 ## Classes
-An picture is worth a thousand words, so here is the class diagram of the restaurant model:
+A picture is worth a thousand words, so here is the class diagram of the restaurant model:
 
 ![](./img/classes.png)
+
+It's not complete though, but the classes and their relationships are accurate.
+
 # Results
 Once we have a working model, we can use it to analyze different scenarios and answer all sorts of interesting questions.
 ## Popularity over time
@@ -147,7 +150,7 @@ model = Model.new(cooks_count: 1,
 end
 ```
 ## From a bash script
-The parameters can't be passed in using environment variables, which is useful for scripting.
+The parameters can be passed in using environment variables, which is useful for scripting.
 For example, the `question1` file runs the simulation given a set of input parameters,
 and then passes the output JSON to a python script which draws the graphs seen previously.
 ## Output
