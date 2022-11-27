@@ -19,7 +19,7 @@ class Model
   START_HOUR = 8
   END_HOUR = 20
   CLOSING_HOUR = 19
-  START_TIME = Time.new(2022, mon = 1, day = 1, hour = 8, min = 0, sec = 0)
+  START_TIME = Time.new(2022, 1, 1, START_HOUR, 0, 0)
 
   DailyMetrics = Struct.new(:profit, :served, :avg_rating, :avg_waiting_time, :popularity, :ratings)
   Menu = Struct.new(:burgers, :fries, :drinks)
