@@ -96,15 +96,10 @@ class Customer < Agent
   end
 
   def step
-    if @state == :choosing_order &&
-       state_duration >= CHOOSING_ORDER_TIME
+    if @state == :choosing_order && state_duration >= CHOOSING_ORDER_TIME
       decide_order
-      return
-    end
-    if @state == :eating &&
-       state_duration >= EATING_TIME
+    elsif @state == :eating && state_duration >= EATING_TIME
       finish_eating
-      nil
     end
   end
 end

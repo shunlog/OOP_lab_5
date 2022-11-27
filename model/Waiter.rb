@@ -91,26 +91,14 @@ class Waiter < Agent
     if @state == :cleaning_table &&
        state_duration >= CLEANING_TIME
       change_state(:waiting)
-    elsif @state == :waiting
-      if customer_waiting_check
-        bill_customer(customer_waiting_check)
-        return
-      end
-
-      if customer_waiting_ordering
-        take_order(customer_waiting_ordering)
-        return
-      end
-
-      unless @orders.empty?
-        leave_orders
-        return
-      end
-
-      unless @model.ledge.empty?
-        serve_an_order
-        nil
-      end
+    elsif @state == :waiting && customer_waiting_check
+      bill_customer(customer_waiting_check)
+    elsif @state == :waiting && customer_waiting_ordering
+      take_order(customer_waiting_ordering)
+    elsif @state == :waiting && !@orders.empty?
+      leave_orders
+    elsif @state == :waiting && !@model.ledge.empty?
+      serve_an_order
     end
   end
 end

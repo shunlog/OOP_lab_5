@@ -43,9 +43,9 @@ class Cook < Agent
   end
 
   def step
-    check_order_holder if @state == :waiting
-    if @state == :cooking &&
-       state_duration >= @order.prep_time
+    if @state == :waiting
+      check_order_holder
+    elsif @state == :cooking && state_duration >= @order.prep_time
       finish_order
     end
   end
