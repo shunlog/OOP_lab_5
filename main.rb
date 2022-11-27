@@ -16,7 +16,7 @@ model = Model.new(show_stats: true,
 #   model.run_a_day
 # end
 
-while true do
+loop do
   model.step
   sleep(0.01)
 end

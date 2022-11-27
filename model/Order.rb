@@ -10,7 +10,7 @@ class Order
   end
 
   def to_s
-    "Order #{self.object_id}"
+    "Order #{object_id}"
   end
 
   def prep_time

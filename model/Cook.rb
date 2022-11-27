@@ -10,7 +10,7 @@ class Cook < Agent
   end
 
   def to_s
-    "Cook #{self.object_id}"
+    "Cook #{object_id}"
   end
 
   def new_day
@@ -19,12 +19,11 @@ class Cook < Agent
   end
 
   def change_state(state)
-    if state == :waiting
-      if @state == :cooking
-        @model.logger.info {"#{self} finished cooking #{@order}."}
-      end
-    elsif state == :cooking
-      @model.logger.info {"#{self} started cooking #{@order}."}
+    case state
+    when :waiting
+      @model.logger.info { "#{self} finished cooking #{@order}." } if @state == :cooking
+    when :cooking
+      @model.logger.info { "#{self} started cooking #{@order}." }
     end
     @state_start = @model.steps
     @state = state

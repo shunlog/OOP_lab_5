@@ -51,7 +51,7 @@ class Model
 
     @logger = Logger.new($stdout)
     @logger.level = logger_level
-    logger.formatter = proc do |severity, datetime, progname, msg|
+    logger.formatter = proc do |_severity, _datetime, _progname, msg|
       ">>> Day #{day} -- #{time}: #{msg}\n"
     end
 
@@ -81,11 +81,11 @@ class Model
     @waiting_times = []
     @profit = 0
     @served = 0
-    if @popularity
-      @popularity = new_day_new_popularity
-    else
-      @popularity = @initial_popularity
-    end
+    @popularity = if @popularity
+                    new_day_new_popularity
+                  else
+                    @initial_popularity
+                  end
     # @ratings = []
     @cooks.each(&:new_day)
     @waiters.each(&:new_day)
@@ -93,25 +93,27 @@ class Model
   end
 
   def pareto(x, xm, a)
-       if x >= xm
-         return (a * xm**a) / (x ** (a+1))
-       else
-         return 0
-       end
+    if x >= xm
+      (a * xm**a) / (x**(a + 1))
+    else
+      0
+    end
   end
 
   def population_ratio(rating)
     xm = 1
     a = 1.16
-    rating_filter = pareto(5.0+xm-rating, xm, a) / a
+    rating_filter = pareto(5.0 + xm - rating, xm, a) / a
     count_filter = rating_filter * [(@ratings.size.to_f / @population), 1.0].min
     [count_filter, 1].min
   end
 
   def new_day_new_popularity
     pop = @population.to_f * population_ratio(avg_rating)
-    @logger.info { "New popularity of the restaurant is #{pop},\n\
- given that the rating is #{avg_rating} and there are #{@population} people." }
+    @logger.info do
+      "New popularity of the restaurant is #{pop},\n\
+ given that the rating is #{avg_rating} and there are #{@population} people."
+    end
     pop
   end
 
@@ -155,14 +157,14 @@ class Model
   end
 
   def step
-    print_stats if @steps % @stats_frequency == 0
+    print_stats if (@steps % @stats_frequency).zero?
     @steps += 1
     customers_appear
     @waiters.each(&:step)
     @customers.each(&:step)
     @cooks.each(&:step)
     start_closing if @steps == closing_min
-    wrap_up if @steps % wm == 0
+    wrap_up if (@steps % wm).zero?
   end
 
   def avg_waiting_time
@@ -205,9 +207,7 @@ class Model
   end
 
   def time
-    if @steps.nil?
-      @steps = 0
-    end
+    @steps = 0 if @steps.nil?
     t = START_TIME
     t += @steps * 60
     t += (day - 1) * 60 * 60 * 24
@@ -249,15 +249,14 @@ class Model
     w2 = 20
     w3 = 7
     ws = w1 + w2 + w3
-    puts "+" + "-"*(ws+2) + "+"
-    puts "|" + "Time: #{time}, Day: #{day}".center(ws+2) + "|"
-    puts "+" + "-"*(ws+2) + "+"
+    puts "+#{'-' * (ws + 2)}+"
+    puts "|#{"Time: #{time}, Day: #{day}".center(ws + 2)}|"
+    puts "+#{'-' * (ws + 2)}+"
     rows.each do |row|
       puts "|#{row[0].ljust(w1)}|#{row[1].ljust(w2)}|#{row[2].rjust(w3)}|"
     end
-    puts "+" + "-"*(ws+2) + "+"
+    puts "+#{'-' * (ws + 2)}+"
   end
-
 
   def print_daily_metrics
     @daily_metrics.each do |m|

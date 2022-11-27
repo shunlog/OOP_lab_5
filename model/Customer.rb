@@ -15,21 +15,22 @@ class Customer < Agent
   end
 
   def to_s
-    "Customer #{self.object_id}"
+    "Customer #{object_id}"
   end
 
   def change_state(state)
-    if state == :choosing_order
-      @model.logger.info {"#{self} entered restaurant."}
-    elsif state == :waiting_waiter
-      @model.logger.info {"#{self} decided what to order."}
-    elsif state == :waiting_food
+    case state
+    when :choosing_order
+      @model.logger.info { "#{self} entered restaurant." }
+    when :waiting_waiter
+      @model.logger.info { "#{self} decided what to order." }
+    when :waiting_food
       @waiting_time += @model.steps - @state_start
-    elsif state == :eating
+    when :eating
       @waiting_time += @model.steps - @state_start
-    elsif state == :waiting_check
-      @model.logger.info {"#{self} finished eating and asked for the check."}
-    elsif state == :exiting
+    when :waiting_check
+      @model.logger.info { "#{self} finished eating and asked for the check." }
+    when :exiting
       @waiting_time += @model.steps - @state_start
       @model.waiting_times << @waiting_time
     end
