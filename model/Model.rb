@@ -75,6 +75,10 @@ class Model
     start_day
   end
 
+  def agents
+    @waiters | @cooks | @customers
+  end
+
   def start_day
     @steps = 0
     @order_holder = []
@@ -163,9 +167,7 @@ class Model
     @steps += 1
     print_stats if (@steps % @stats_frequency).zero?
     customers_appear
-    @waiters.each(&:step)
-    @customers.each(&:step)
-    @cooks.each(&:step)
+    agents.each(&:step)
     start_closing if @steps == closing_min
     wrap_up if (@steps % wm).zero?
   end
@@ -220,6 +222,7 @@ class Model
     return unless @show_stats
 
     rows = [
+      ['People', '', agents.size.to_s],
       ['Customers', '', @customers.size.to_s],
       ['', 'Choosing order', @customers.filter { |c| c.state == :choosing_order }.size.to_s],
       ['', 'Waiting waiter', @customers.filter { |c| c.state == :waiting_waiter }.size.to_s],
