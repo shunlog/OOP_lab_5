@@ -37,7 +37,7 @@ class Model
                  tables_count: 20,
                  initial_popularity: 10,
                  population: 500,
-                 cook_salary: 80.0,
+                 cook_salary: 15.0,
                  show_stats: false,
                  stats_frequency: 60,
                  logger_level: Logger::WARN)
@@ -184,7 +184,7 @@ class Model
   end
 
   def pay_cooks
-    @profit -= @cooks.size * @cook_salary
+    @profit -= @cooks.size * @cook_salary * work_hours
   end
 
   def store_daily_metrics
