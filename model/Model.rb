@@ -152,7 +152,7 @@ class Model
   def customers_appear
     return if closing_time
 
-    mean = @popularity.to_f / wm # mean nr of customers per minute
+    mean = @popularity.to_f / work_minutes # mean nr of customers per minute
     n = Distribution::Poisson.rng(mean)
     n.times do
       customer_appears
@@ -169,7 +169,7 @@ class Model
     customers_appear
     agents.each(&:step)
     start_closing if @steps == closing_min
-    wrap_up if (@steps % wm).zero?
+    wrap_up if (@steps % work_minutes).zero?
   end
 
   def avg_waiting_time
@@ -193,17 +193,17 @@ class Model
   end
 
   def run_a_day
-    (wh * 60).times do
+    (work_hours * 60).times do
       step
     end
   end
 
-  def wh
+  def work_hours
     END_HOUR - START_HOUR
   end
 
-  def wm
-    wh * 60
+  def work_minutes
+    work_hours * 60
   end
 
   def time
