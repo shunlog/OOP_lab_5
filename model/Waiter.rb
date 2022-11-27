@@ -9,14 +9,14 @@ class Waiter < Agent
 
   def initialize(model)
     super
-    new_day
+    start_day
   end
 
   def to_s
     "Waiter #{object_id}"
   end
 
-  def new_day
+  def start_day
     change_state(:waiting)
     @orders = []
   end

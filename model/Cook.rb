@@ -6,14 +6,14 @@ require_relative 'Agent'
 class Cook < Agent
   def initialize(model)
     super
-    new_day
+    start_day
   end
 
   def to_s
     "Cook #{object_id}"
   end
 
-  def new_day
+  def start_day
     change_state(:waiting)
     @order = nil
   end

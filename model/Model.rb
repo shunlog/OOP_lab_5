@@ -71,10 +71,10 @@ class Model
       @cooks << Cook.new(self)
     end
 
-    new_day
+    start_day
   end
 
-  def new_day
+  def start_day
     @steps = 0
     @order_holder = []
     @ledge = []
@@ -88,8 +88,8 @@ class Model
                     @initial_popularity
                   end
     # @ratings = []
-    @cooks.each(&:new_day)
-    @waiters.each(&:new_day)
+    @cooks.each(&:start_day)
+    @waiters.each(&:start_day)
     @logger.info { "Starting day #{@day}" }
   end
 
@@ -124,7 +124,7 @@ class Model
     pay_cooks
     store_daily_metrics
     @day += 1
-    new_day
+    start_day
   end
 
   def customer_appears
