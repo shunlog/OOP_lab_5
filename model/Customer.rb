@@ -76,7 +76,6 @@ class Customer < Agent
 
   def wrap_up
     @model.rate(1)
-    change_state(:exiting)
   end
 
   def rate

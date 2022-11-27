@@ -70,6 +70,7 @@ class Model
     cooks_count.times do
       @cooks << Cook.new(self)
     end
+    @customers = []
 
     start_day
   end
@@ -78,7 +79,6 @@ class Model
     @steps = 0
     @order_holder = []
     @ledge = []
-    @customers = []
     @waiting_times = []
     @profit = 0
     @served = 0
@@ -121,6 +121,7 @@ class Model
   def wrap_up
     print_stats
     @customers.each(&:wrap_up)
+    @customers = []
     pay_cooks
     store_daily_metrics
     @day += 1
