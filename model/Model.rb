@@ -159,8 +159,8 @@ class Model
   end
 
   def step
-    print_stats if (@steps % @stats_frequency).zero?
     @steps += 1
+    print_stats if (@steps % @stats_frequency).zero?
     customers_appear
     @waiters.each(&:step)
     @customers.each(&:step)
