@@ -43,7 +43,7 @@ class Model
                  logger_level: Logger::WARN)
 
     @tables_count = tables_count
-    @initial_popularity = initial_popularity # number of customers daily
+    @initial_popularity = initial_popularity
     @cook_salary = cook_salary
     @population = population
     @show_stats = show_stats
@@ -90,7 +90,6 @@ class Model
                   else
                     @initial_popularity
                   end
-    # @ratings = []
     @cooks.each(&:start_day)
     @waiters.each(&:start_day)
     @logger.info { "Starting day #{@day}" }
@@ -151,7 +150,7 @@ class Model
   def customers_appear
     return if closing_time
 
-    mean = @popularity.to_f / work_minutes # mean nr of customers per minute
+    mean = @popularity.to_f / work_minutes
     n = Distribution::Poisson.rng(mean)
     n.times do
       customer_appears

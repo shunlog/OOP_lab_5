@@ -11,6 +11,4 @@ class Agent
   def state_duration
     @model.steps - @state_start
   end
-
-  def step; end
 end
