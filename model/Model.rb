@@ -52,7 +52,7 @@ class Model
     @logger = Logger.new($stdout)
     @logger.level = logger_level
     logger.formatter = proc do |_severity, _datetime, _progname, msg|
-      ">>> Day #{day} -- #{time}: #{msg}\n"
+      ">>> Day #{@day} -- #{time}: #{msg}\n"
     end
 
     @prng = Random.new
@@ -60,6 +60,7 @@ class Model
     @popularity = nil
     @menu = Menu.new(Burgers, Fries, Drinks)
     @daily_metrics = []
+    @day = 1
 
     @waiters = []
     waiters_count.times do
@@ -89,7 +90,7 @@ class Model
     # @ratings = []
     @cooks.each(&:new_day)
     @waiters.each(&:new_day)
-    @logger.info { "Starting day #{day}" }
+    @logger.info { "Starting day #{@day}" }
   end
 
   def pareto(x, xm, a)
@@ -122,6 +123,7 @@ class Model
     @customers.each(&:wrap_up)
     pay_cooks
     store_daily_metrics
+    @day += 1
     new_day
   end
 
@@ -193,11 +195,6 @@ class Model
     end
   end
 
-  def day
-    # 1-indexed
-    @daily_metrics.size + 1
-  end
-
   def wh
     END_HOUR - START_HOUR
   end
@@ -210,7 +207,7 @@ class Model
     @steps = 0 if @steps.nil?
     t = START_TIME
     t += @steps * 60
-    t += (day - 1) * 60 * 60 * 24
+    t += (@day - 1) * 60 * 60 * 24
     t.strftime '%H:%M'
   end
 
@@ -250,7 +247,7 @@ class Model
     w3 = 7
     ws = w1 + w2 + w3
     puts "+#{'-' * (ws + 2)}+"
-    puts "|#{"Time: #{time}, Day: #{day}".center(ws + 2)}|"
+    puts "|#{"Time: #{time}, Day: #{@day}".center(ws + 2)}|"
     puts "+#{'-' * (ws + 2)}+"
     rows.each do |row|
       puts "|#{row[0].ljust(w1)}|#{row[1].ljust(w2)}|#{row[2].rjust(w3)}|"
