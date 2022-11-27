@@ -188,7 +188,8 @@ class Model
   end
 
   def store_daily_metrics
-    @daily_metrics << DailyMetrics.new(profit, @served, avg_rating, avg_waiting_time, @popularity, @ratings.dup)
+    @daily_metrics << DailyMetrics.new(profit, @served, avg_rating,
+                                       avg_waiting_time, @popularity, @ratings.dup)
   end
 
   def run_a_day
