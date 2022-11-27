@@ -69,12 +69,8 @@ class Customer < Agent
     change_state(:waiting_check)
   end
 
-  def pay
-    change_state(:exiting)
-    @order.cost
-  end
-
   def wrap_up
+    change_state(:exiting)
     @model.rate(1)
   end
 

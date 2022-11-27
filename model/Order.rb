@@ -17,7 +17,7 @@ class Order
     @items.sum(&:prep_time)
   end
 
-  def cost
-    @items.sum(&:price)
+  def profit
+    @items.sum { |i| i.price * i.profit_margin }
   end
 end

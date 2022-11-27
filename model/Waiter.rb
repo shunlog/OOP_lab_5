@@ -63,9 +63,8 @@ class Waiter < Agent
   end
 
   def bill_customer(customer)
-    s = customer.pay
     customer.rate
-    @model.profit += s
+    @model.profit += customer.order.profit
     @model.served += 1
     @model.customers.delete(customer)
     @model.logger.info { "#{self} billed #{customer}." }

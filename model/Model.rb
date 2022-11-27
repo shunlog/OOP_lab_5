@@ -23,7 +23,7 @@ class Model
 
   DailyMetrics = Struct.new(:profit, :served, :avg_rating, :avg_waiting_time, :popularity, :ratings)
   Menu = Struct.new(:burgers, :fries, :drinks)
-  MenuItem = Struct.new(:name, :prep_time, :price, :pm) # profit margin
+  MenuItem = Struct.new(:name, :prep_time, :price, :profit_margin)
 
   Burgers = [MenuItem.new('Fat Burger', 10, 4.99, 0.2)] +
             [MenuItem.new('Little Johnny', 8, 3.99, 0.2)]
