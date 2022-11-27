@@ -25,13 +25,13 @@ class Customer < Agent
     when :waiting_waiter
       @model.logger.info { "#{self} decided what to order." }
     when :waiting_food
-      @waiting_time += @model.steps - @state_start
+      @waiting_time += state_duration
     when :eating
-      @waiting_time += @model.steps - @state_start
+      @waiting_time += state_duration
     when :waiting_check
       @model.logger.info { "#{self} finished eating and asked for the check." }
     when :exiting
-      @waiting_time += @model.steps - @state_start
+      @waiting_time += state_duration
       @model.waiting_times << @waiting_time
     end
     @state_start = @model.steps
@@ -97,12 +97,12 @@ class Customer < Agent
 
   def step
     if @state == :choosing_order &&
-       @model.steps - @state_start >= CHOOSING_ORDER_TIME
+       state_duration >= CHOOSING_ORDER_TIME
       decide_order
       return
     end
     if @state == :eating &&
-       @model.steps - @state_start >= EATING_TIME
+       state_duration >= EATING_TIME
       finish_eating
       nil
     end

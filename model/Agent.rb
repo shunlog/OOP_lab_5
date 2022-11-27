@@ -8,5 +8,9 @@ class Agent
     @model = model
   end
 
+  def state_duration
+    @model.steps - @state_start
+  end
+
   def step; end
 end
