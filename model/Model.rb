@@ -55,7 +55,6 @@ class Model
       ">>> Day #{@day} -- #{time}: #{msg}\n"
     end
 
-    @prng = Random.new
     @ratings = []
     @popularity = nil
     @menu = Menu.new(Burgers, Fries, Drinks)

@@ -40,16 +40,13 @@ class Customer < Agent
 
   def decide_order
     items = []
-    # one burger
-    items += [@model.menu.burgers.sample]
-    # one or two fries
-    n_fries = @model.prng.rand(2) + 1
-    n_fries.times do
+    [1].sample.times do
+      items += [@model.menu.burgers.sample]
+    end
+    [1,2].sample.times do
       items += [@model.menu.fries.sample]
     end
-    # zero or one drinks
-    n_drinks = @model.prng.rand(2)
-    n_drinks.times do
+    [0,1].sample.times do
       items += [@model.menu.drinks.sample]
     end
     @order = Order.new(self, items)
