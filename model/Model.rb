@@ -54,6 +54,7 @@ class Model
     logger.formatter = proc do |_severity, _datetime, _progname, msg|
       ">>> Day #{@day} -- #{time}: #{msg}\n"
     end
+    @observers = Hash.new { |hash, key| hash[key] = [] }
 
     @ratings = []
     @popularity = nil
@@ -74,12 +75,23 @@ class Model
     start_day
   end
 
+  def add_observer(signal, callback)
+    @observers[signal] << callback
+    pp @observers
+  end
+
+  def notify(signal, *args)
+    @observers[signal].each { |callback|
+      callback.call(*args)
+    }
+  end
+
   def agents
     @waiters | @cooks | @customers
   end
 
   def start_day
-    @steps = 0
+    update_steps(0)
     @order_holder = []
     @ledge = []
     @waiting_times = []
@@ -161,8 +173,14 @@ class Model
     @logger.info { "Starting closing. Customers can't enter anymore." }
   end
 
+  def update_steps(steps = @steps + 1)
+    @steps = steps
+    notify(:time, @steps)
+  end
+
   def step
-    @steps += 1
+    update_steps
+
     print_stats if (@steps % @stats_frequency).zero?
     customers_appear
     agents.each(&:step)
@@ -206,7 +224,7 @@ class Model
   end
 
   def time
-    @steps = 0 if @steps.nil?
+    update_steps(0) if @steps.nil?
     t = START_TIME
     t += @steps * 60
     t += (@day - 1) * 60 * 60 * 24
