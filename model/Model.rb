@@ -10,10 +10,10 @@ require_relative 'Cook'
 require_relative 'Waiter'
 
 class Model
-  attr_accessor :customers, :waiters, :cooks, :steps,
-                :menu, :order_holder, :ledge, :served,
-                :prng, :profit, :daily_metrics, :waiting_times,
-                :logger
+  attr_accessor :profit, :served
+  attr_reader :customers, :waiters, :cooks, :steps,
+                :menu, :order_holder, :ledge, :prng,
+                :daily_metrics, :waiting_times, :logger
 
   MIN_POPULARITY = 10
   START_HOUR = 8
