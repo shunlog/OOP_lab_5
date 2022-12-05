@@ -91,7 +91,7 @@ class Model
   end
 
   def start_day
-    update_steps(0)
+    @steps = 0
     @order_holder = []
     @ledge = []
     @waiting_times = []
@@ -173,13 +173,13 @@ class Model
     @logger.info { "Starting closing. Customers can't enter anymore." }
   end
 
-  def update_steps(steps = @steps + 1)
+  def steps=(steps)
     @steps = steps
     notify(:time, @steps)
   end
 
   def step
-    update_steps
+    self.steps += 1
 
     print_stats if (@steps % @stats_frequency).zero?
     customers_appear
@@ -224,7 +224,7 @@ class Model
   end
 
   def time
-    update_steps(0) if @steps.nil?
+    self.steps = 0 if @steps.nil?
     t = START_TIME
     t += @steps * 60
     t += (@day - 1) * 60 * 60 * 24
