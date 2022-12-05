@@ -11,9 +11,10 @@ model = Model.new(show_stats: false,
                   initial_popularity: 10,
                   stats_frequency: 120,
                   logger_level: Logger::ERROR)
-view = View.new(model, 0)
+view = TUIView.new(model)
 
 loop do
   model.step
+  view.print
   sleep(0.01)
 end
