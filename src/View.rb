@@ -20,7 +20,13 @@ class TUIView
   def initialize(model)
     @clock_view = ClockView.new(model)
   end
+
   def print
+    clear
     @clock_view.print
+  end
+
+  def clear
+    puts "\e[H\e[2J"
   end
 end
