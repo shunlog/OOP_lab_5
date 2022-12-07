@@ -11,7 +11,7 @@ require_relative 'Waiter'
 
 class Model
   attr_accessor :profit, :served
-  attr_reader :customers, :waiters, :cooks, :steps,
+  attr_reader :customers, :waiters, :cooks, :steps, :day,
                 :menu, :order_holder, :ledge, :prng,
                 :daily_metrics, :waiting_times, :logger
 
@@ -31,6 +31,16 @@ class Model
           [MenuItem.new('Greasy Fingers', 6, 2.99, 0.3)]
   Drinks = [MenuItem.new('Overpriced tea', 1, 1.99, 0.9)] +
            [MenuItem.new('Overpriced drink', 1, 1.99, 0.9)]
+
+  def steps=(steps)
+    @steps = steps
+    notify(:time, @steps)
+  end
+
+  def day=(day)
+    @day = day
+    notify(:date, @day)
+  end
 
   def initialize(cooks_count: 5,
                  waiters_count: 1,
@@ -60,7 +70,7 @@ class Model
     @popularity = nil
     @menu = Menu.new(Burgers, Fries, Drinks)
     @daily_metrics = []
-    @day = 1
+    self.day = 1
 
     @waiters = []
     waiters_count.times do
@@ -138,7 +148,7 @@ class Model
     @customers = []
     pay_cooks
     store_daily_metrics
-    @day += 1
+    self.day += 1
     start_day
   end
 
@@ -171,11 +181,6 @@ class Model
 
   def start_closing
     @logger.info { "Starting closing. Customers can't enter anymore." }
-  end
-
-  def steps=(steps)
-    @steps = steps
-    notify(:time, @steps)
   end
 
   def step

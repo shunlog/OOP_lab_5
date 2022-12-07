@@ -16,17 +16,31 @@ class ClockView
   end
 end
 
-class TUIView
-  def initialize(model)
-    @clock_view = ClockView.new(model)
+class DateView
+  attr_reader :text
+  def initialize(model, date=1)
+    update(date)
+    model.add_observer(:date, self.method(:update))
+  end
+
+  def update(date)
+    @text = "#{date}"
   end
 
   def print
-    clear
-    @clock_view.print
+    puts @text
+  end
+end
+
+
+class TUIView
+  def initialize(model)
+    @clock_view = ClockView.new(model)
+    @date_view = DateView.new(model)
   end
 
-  def clear
-    puts "\e[H\e[2J"
+  def print
+    @clock_view.print
+    @date_view.print
   end
 end

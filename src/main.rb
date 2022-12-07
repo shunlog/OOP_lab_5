@@ -16,5 +16,5 @@ view = TUIView.new(model)
 loop do
   model.step
   view.print
-  sleep(0.01)
+  sleep(0.001)
 end
