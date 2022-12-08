@@ -16,8 +16,6 @@ view = TUIView.new(model)
 require 'ffi-ncurses'
 include FFI::NCurses
 
-initscr
-
 # cbreak
 # noecho
 timeout(0) # delay in milliseconds
@@ -26,14 +24,19 @@ def KEY(ch)
   ch[0].ord
 end
 
-loop do
-  model.step
+play = true
 
+loop do
   ch = getch
   if ch == KEY("q")
     break
+  elsif ch == KEY(" ")
+    play = !play
   end
 
-  view.print
+  if play or ch == KEY("n")
+    model.step
+    view.print
+  end
   sleep(0.001)
 end

@@ -13,7 +13,8 @@ class Model
   attr_accessor :profit, :served
   attr_reader :customers, :waiters, :cooks, :steps, :day,
                 :menu, :order_holder, :ledge, :prng,
-                :daily_metrics, :waiting_times, :logger
+                :daily_metrics, :waiting_times, :logger,
+                :tables_count
 
   MIN_POPULARITY = 10
   START_HOUR = 8
@@ -35,6 +36,7 @@ class Model
   def steps=(steps)
     @steps = steps
     notify(:time, @steps)
+    notify(:dashboard)
   end
 
   def day=(day)
@@ -143,7 +145,6 @@ class Model
   end
 
   def wrap_up
-    print_stats
     @customers.each(&:wrap_up)
     @customers = []
     pay_cooks
@@ -186,7 +187,6 @@ class Model
   def step
     self.steps += 1
 
-    print_stats if (@steps % @stats_frequency).zero?
     customers_appear
     agents.each(&:step)
     start_closing if @steps == closing_min
@@ -240,46 +240,6 @@ class Model
     @ratings << rating
   end
 
-  def print_stats
-    return unless @show_stats
-
-    rows = [
-      ['People', '', agents.size.to_s],
-      ['Customers', '', @customers.size.to_s],
-      ['', 'Choosing order', @customers.filter { |c| c.state == :choosing_order }.size.to_s],
-      ['', 'Waiting waiter', @customers.filter { |c| c.state == :waiting_waiter }.size.to_s],
-      ['', 'Waiting food', @customers.filter { |c| c.state == :waiting_food }.size.to_s],
-      ['', 'Eating', @customers.filter { |c| c.state == :eating }.size.to_s],
-      ['', 'Waiting check', @customers.filter { |c| c.state == :waiting_check }.size.to_s],
-
-      ['Waiters', '', @waiters.size.to_s],
-      ['', 'Waiting', @waiters.filter { |c| c.state == :waiting }.size.to_s],
-      ['', 'Cleaning table', @waiters.filter { |c| c.state == :cleaning_table }.size.to_s],
-
-      ['Cooks', '', @cooks.size.to_s],
-      ['', 'Waiting', @cooks.filter { |c| c.state == :waiting }.size.to_s],
-      ['', 'Cooking', @cooks.filter { |c| c.state == :cooking }.size.to_s],
-
-      ['Tables', '', @tables_count.to_s],
-      ['', 'Free', (@tables_count - @customers.size).to_s],
-
-      ['Served', '', @served.to_s],
-
-      ['Profit', '', @profit.round(2).to_s],
-      ['Rating', '', avg_rating.to_s]
-    ]
-    w1 = 10
-    w2 = 20
-    w3 = 7
-    ws = w1 + w2 + w3
-    puts "+#{'-' * (ws + 2)}+"
-    puts "|#{"Time: #{time}, Day: #{@day}".center(ws + 2)}|"
-    puts "+#{'-' * (ws + 2)}+"
-    rows.each do |row|
-      puts "|#{row[0].ljust(w1)}|#{row[1].ljust(w2)}|#{row[2].rjust(w3)}|"
-    end
-    puts "+#{'-' * (ws + 2)}+"
-  end
 
   def print_daily_metrics
     @daily_metrics.each do |m|
