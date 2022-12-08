@@ -13,8 +13,27 @@ model = Model.new(show_stats: false,
                   logger_level: Logger::ERROR)
 view = TUIView.new(model)
 
+require 'ffi-ncurses'
+include FFI::NCurses
+
+initscr
+
+# cbreak
+# noecho
+timeout(0) # delay in milliseconds
+
+def KEY(ch)
+  ch[0].ord
+end
+
 loop do
   model.step
+
+  ch = getch
+  if ch == KEY("q")
+    break
+  end
+
   view.print
   sleep(0.001)
 end
