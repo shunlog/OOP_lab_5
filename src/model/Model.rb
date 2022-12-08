@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require 'logger'
 require 'sciruby'
 require 'json'
 require_relative 'Order'
@@ -13,7 +12,7 @@ class Model
   attr_accessor :profit, :served
   attr_reader :customers, :waiters, :cooks, :steps, :day,
                 :menu, :order_holder, :ledge, :prng,
-                :daily_metrics, :waiting_times, :logger,
+                :daily_metrics, :waiting_times,
                 :tables_count
 
   MIN_POPULARITY = 10
@@ -51,8 +50,7 @@ class Model
                  population: 500,
                  cook_salary: 15.0,
                  show_stats: false,
-                 stats_frequency: 60,
-                 logger_level: Logger::WARN)
+                 stats_frequency: 60)
 
     @tables_count = tables_count
     @initial_popularity = initial_popularity
@@ -61,11 +59,6 @@ class Model
     @show_stats = show_stats
     @stats_frequency = stats_frequency
 
-    @logger = Logger.new($stdout)
-    @logger.level = logger_level
-    logger.formatter = proc do |_severity, _datetime, _progname, msg|
-      ">>> Day #{@day} -- #{time}: #{msg}\n"
-    end
     @observers = Hash.new { |hash, key| hash[key] = [] }
 
     @ratings = []
@@ -116,7 +109,7 @@ class Model
                   end
     @cooks.each(&:start_day)
     @waiters.each(&:start_day)
-    @logger.info { "Starting day #{@day}" }
+    notify(:log, "Starting day #{@day}" )
   end
 
   def pareto(x, xm, a)
@@ -137,10 +130,7 @@ class Model
 
   def new_day_new_popularity
     pop = @population.to_f * population_ratio(avg_rating)
-    @logger.info do
-      "New popularity of the restaurant is #{pop},\n\
- given that the rating is #{avg_rating} and there are #{@population} people."
-    end
+    notify(:log, "New popularity of the restaurant is #{pop},\n\ given that the rating is #{avg_rating} and there are #{@population} people.")
     pop
   end
 
@@ -181,7 +171,7 @@ class Model
   end
 
   def start_closing
-    @logger.info { "Starting closing. Customers can't enter anymore." }
+    notify(:log, "Starting closing. Customers can't enter anymore." )
   end
 
   def step

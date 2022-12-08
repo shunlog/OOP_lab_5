@@ -9,8 +9,7 @@ model = Model.new(show_stats: false,
                   waiters_count: 1,
                   tables_count: 10,
                   initial_popularity: 10,
-                  stats_frequency: 120,
-                  logger_level: Logger::ERROR)
+                  stats_frequency: 120)
 view = TUIView.new(model)
 
 require 'ffi-ncurses'

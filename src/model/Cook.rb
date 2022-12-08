@@ -21,9 +21,9 @@ class Cook < Agent
   def change_state(state)
     case state
     when :waiting
-      @model.logger.info { "#{self} finished cooking #{@order}." } if @state == :cooking
+      @model.notify(:log, "#{self} finished cooking #{@order}." ) if @state == :cooking
     when :cooking
-      @model.logger.info { "#{self} started cooking #{@order}." }
+      @model.notify(:log, "#{self} started cooking #{@order}." )
     end
     @state_start = @model.steps
     @state = state

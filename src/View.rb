@@ -5,10 +5,12 @@ include FFI::NCurses
 
 class ClockView
   attr_reader :text
-  W = 20
-  H = 7
-  M = 2
+  W = 32
+  H = 11
+  M = 1
+
   def initialize(model, time=0, y: 0, x: 0)
+    @model = model
     @time = time
     model.add_observer(:time, self.method(:update))
     @win = newwin(H, W, y, x)
@@ -18,7 +20,8 @@ class ClockView
   end
 
   def update(time)
-    @text = "Minute #{time}"
+    clock = %x(figlet #{@model.time})
+    @text = "Time:\n#{clock}"
   end
 
   def print()
@@ -31,10 +34,11 @@ end
 
 class DateView
   attr_reader :text
-  W = 18
-  H = 7
-  M = 2
+  W = 20
+  H = 11
+  M = 1
   def initialize(model, date=1, y: 0, x: 0)
+    @model = model
     update(date)
     model.add_observer(:date, self.method(:update))
 
@@ -45,7 +49,8 @@ class DateView
   end
 
   def update(date)
-    @text = "Day #{date}"
+    fig = %x(figlet #{date})
+    @text = "Day:\n#{fig}"
   end
 
   def print()
@@ -56,16 +61,42 @@ class DateView
   end
 end
 
+class LogsView
+  attr_reader :text
+  W = 80
+  H = 34
+  M = 2
+  def initialize(model, y: 0, x: 0)
+    @model = model
+    model.add_observer(:log, self.method(:update))
+
+    @win = newwin(H, W, y, x)
+    box(@win, 0, 0)
+    @iwin = derwin(@win, H-2*M, W-2*M, M, M)
+    scrollok @iwin, true
+  end
+
+  def update(message)
+    @text = "> Day #{@model.day}, #{@model.time}: #{message}\n"
+  end
+
+  def print()
+    waddstr(@iwin, @text)
+    wrefresh(@win)
+    wrefresh(@iwin)
+    @text = ""
+  end
+end
 
 class DashboardView
   attr_reader :text, :model
 
-  W = 60
-  H = 30
+  W = 46
+  H = 26
   M = 2
   def initialize(model, y: 0, x: 0)
-    model.add_observer(:dashboard, self.method(:update))
     @model = model
+    model.add_observer(:dashboard, self.method(:update))
 
     @win = newwin(H, W, y, x)
     box(@win, 0, 0)
@@ -74,7 +105,7 @@ class DashboardView
   end
 
   def update()
-    @text = ""
+    @text = "Dashboard:\n"
 
     rows = [
       ['People', '', @model.agents.size.to_s],
@@ -123,22 +154,22 @@ end
 class TUIView
   def initialize(model)
     @model = model
-
     initscr
     curs_set 0
-    # raw
     noecho
     keypad stdscr, true
     scrollok stdscr, true
 
-    @clock_view = ClockView.new(model, y: 0, x: 0)
-    @date_view = DateView.new(model,  y: 0, x: 20)
-    @dashboard_view = DashboardView.new(model, y:8, x:0)
+    @views = []
+    @views << ClockView.new(model, y: 0, x: 0) \
+    << DateView.new(model,  y: 0, x: 35) \
+    << DashboardView.new(model, y:12, x:0) \
+    << LogsView.new(model, y:0, x:58)
   end
 
   def print
-    @clock_view.print
-    @date_view.print
-    @dashboard_view.print
+    @views.each do |v|
+      v.print
+    end
   end
 end

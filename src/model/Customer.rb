@@ -21,15 +21,15 @@ class Customer < Agent
   def change_state(state)
     case state
     when :choosing_order
-      @model.logger.info { "#{self} entered restaurant." }
+      @model.notify(:log, "#{self} entered restaurant." )
     when :waiting_waiter
-      @model.logger.info { "#{self} decided what to order." }
+      @model.notify(:log, "#{self} decided what to order." )
     when :waiting_food
       @waiting_time += state_duration
     when :eating
       @waiting_time += state_duration
     when :waiting_check
-      @model.logger.info { "#{self} finished eating and asked for the check." }
+      @model.notify(:log, "#{self} finished eating and asked for the check." )
     when :exiting
       @waiting_time += state_duration
       @model.waiting_times << @waiting_time

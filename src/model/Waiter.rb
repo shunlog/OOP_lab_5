@@ -45,21 +45,21 @@ class Waiter < Agent
 
   def take_order(customer)
     @orders << customer.order
-    @model.logger.info { "#{self} took #{customer}'s order." }
+    @model.notify(:log, "#{self} took #{customer}'s order." )
   end
 
   def leave_orders
     @orders.each do |o|
       @model.order_holder << o
     end
-    @model.logger.info { "#{self} left #{@orders.size} orders in the order holder." }
+    @model.notify(:log, "#{self} left #{@orders.size} orders in the order holder." )
     @orders = []
   end
 
   def serve_an_order
     order = @model.ledge.pop
     order.customer.serve
-    @model.logger.info { "#{self} served order to #{order.customer}." }
+    @model.notify(:log, "#{self} served order to #{order.customer}." )
   end
 
   def bill_customer(customer)
@@ -67,7 +67,7 @@ class Waiter < Agent
     @model.profit += customer.order.profit
     @model.served += 1
     @model.customers.delete(customer)
-    @model.logger.info { "#{self} billed #{customer}." }
+    @model.notify(:log, "#{self} billed #{customer}." )
     clean_table
   end
 
@@ -78,9 +78,9 @@ class Waiter < Agent
   def change_state(state)
     case state
     when :waiting
-      @model.logger.info { "#{self} finished cleaning the table." } if @state == :cleaning_table
+      @model.notify(:log, "#{self} finished cleaning the table." ) if @state == :cleaning_table
     when :cleaning_table
-      @model.logger.info { "#{self} started cleaning the table." }
+      @model.notify(:log, "#{self} started cleaning the table." )
     end
     @state_start = @model.steps
     @state = state
