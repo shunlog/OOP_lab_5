@@ -152,8 +152,9 @@ class DashboardView
 end
 
 class TUIView
-  def initialize(model)
+  def initialize(model, controller)
     @model = model
+    @controller = controller
     initscr
     curs_set 0
     noecho
@@ -170,6 +171,16 @@ class TUIView
   def print
     @views.each do |v|
       v.print
+    end
+  end
+
+  def run
+    timeout(10) # delay in milliseconds
+    loop do
+      ch = getch
+      @controller.handle_key(ch)
+      self.print
+      sleep(0.001)
     end
   end
 end
