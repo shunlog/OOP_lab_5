@@ -1,16 +1,28 @@
-A model of a dining restaurant written in Ruby.
-It can be used to simulate a restaurant given a set of input parameters:
+This is a [model](https://en.wikipedia.org/wiki/Agent-based_model) of a dining restaurant written in Ruby.
+It is totally useless as a model, I only made it to practice my programming skills.
+Moreover, it is probably a bad example of an ABM model and Ruby code in general.
+
+I did this project at the OOP course in my uni.
+The goal was to program an [agent-based model](https://en.wikipedia.org/wiki/Agent-based_model) in a radical OOP style 
+(using ["the 4 pillar principles"](https://www.freecodecamp.org/news/four-pillars-of-object-oriented-programming/), SOLID, and MVC/MVC/MVVM), 
+and then do some research with it, maybe answer some interesting questions.
+We were free to choose the topic.
+At first I intended to make a top-down arcade space shooter game (obviously I misunderstood the requirements),
+but then settled for a more conservative idea - a model of a restaurant.
+The other topics we were given as examples were chess, CS:GO and tower defense.
+Out of these, only the last one seems related to ABM, though I doubt a tower defense "model" can answer any relevant questions.
+
+I got the maximum grade for this project.
+# Model description 
+The model takes the following input parameters:
 - Cooks count
 - Waiters count
 - Tables count
-- Initial popularity
-  - Number of people that will visit the restaurant in the first day.
-- Population
-  - The maximum number of people that could come to the restaurant in a single day.
-- Cook salary
-  - Measured in units of currency per day.
+- Initial popularity (number of people that will visit the restaurant in the first day)
+- Population (the maximum number of people that could come to the restaurant in a single day)
+- Cook salary (measured in units of currency per day)
 
-Aside from logs of what's happening internally, the model outputs a list of statistics stored for every simulated day:
+Aside from logs of each action that's happening internally, the model can output a list of metrics for each simulated day:
 - Profit
   - How many units of currency the restaurant made that day minus the cook salary.
 - Served customers count
@@ -20,29 +32,30 @@ Aside from logs of what's happening internally, the model outputs a list of stat
 - Popularity
 - Ratings
 
-# Model description 
+## How it works
+At the start of each day,
+the popularity of the restaurant is decided based on the average rating.
+Popularity represents the average number of customers that will arrive on that day.
 
-The restaurant functions in the following way:
-- At the beginning of the day,
-  the popularity of the restaurant is decided
-  based on the average rating.
-  Popularity represents the average number of customers
-  that will arrive on that day.
+
+Then the restaurant opens and the simulation happens in steps, once a minute. In each step, the following actions happen in this order:
+
 - Customers arrive at different times during the day
-   according to a Poisson distribution.
+   (according to a Poisson distribution) and take a seat if there are any free.
+
 - Customers take their time (5 minutes) to decide what to order
-  (1 burger, 0 or 1 drink, and 1 or 2 fries),
+  (1 burger, 0 or 1 drinks, and 1 or 2 portions of fries),
    then the waiter takes their order and puts it in the "order holder".
-- Cooks take one order at a time, cook it,
-  and put the food on the "ledge" when it's done,
-  where waiter takes it to the customer.
-- After eating (30 minutes), the customers pay the check and rate the restaurant,
-  based on how long they waited to be served.
+
+- Cooks take one order at a time, cook it for a number of minutes (depending on order),
+  then put the food on the "ledge" when it's done, where a waiter takes it to the customer.
+
+- After eating for 30 minutes, the customers pay the check and rate the restaurant on a 5 stars scale,
+  based only on how long they waited to be served (5 stars if it they got their order right away).
+
 - When the restaurant closes for the day,
-  all the customers are cicked out (the popularity suffers),
-  the cooks and waiters return to their idle state,
-  the profits are stored in the safe (logged in array and variable is zeroed out),
-  and the metrics are storred in an array.
+  the cooks and waiters abort their tasks (they never leave the restaurant, lol)
+  and the current day's metrics (e.g. profits) are stored.
 
 Notes:
 - Customer arrivals distribution can't be modeled accurately using Poisson,
@@ -50,6 +63,11 @@ Notes:
   there are more customers during lunch hours,
   and much less during opening and closing.
   However, it's much simpler to use than trying to model a beta distribution with 3 spikes.
+
+- The model assumes that the workers never take breaks and work full-time.
+
+- Tables are really chairs in this case, now that I think of it.
+In this model, people come alone and sit at their own table, alone.
 
 ## Classes
 A picture is worth a thousand words, so here is the class diagram of the restaurant model:
@@ -85,7 +103,7 @@ Let's see how the model behaves for different values of `INITIAL_POPULARITY`.
 For `INITIAL_POPULARITY=10`, there is a steady raise in popularity,
 ![](./img/10pop.png)
 
-For `INITIAL_POPULARITY=100`, popularity dips, but then settles at 40.
+For `INITIAL_POPULARITY=100`, popularity dips, but then also settles at 40.
 ![](./img/100pop.png)
 
 We can see that in each case, the system stabilizes pretty fast at the same popularity of ≈40.
@@ -120,22 +138,22 @@ COOK_SALARY=80.0
 
 ![](./img/10tables.png)
 
-It's clear that the optimal number of cooks in this case is **2**.
+It's clear that the optimal number of cooks in this case is **2-3**.
 
 What about a bigger restaurant with, say, 50 tables?
 By tweaking the parameters so it doesn't take too long to run the simulation, I arrived at this graph:
 ![](./img/50tables.png)
 
-The optimal number of cooks for 50 tables turns out to be around **11**.
-Therefore we can extrapolate that our system turned out pretty linear,
-requiring a cook for every ≈5 tables,
-no matter how many tables,
-which is not very interesting.
-However, this was to be expected as the model is not very complex
-and has little to no randomness involved.
+The optimal number of cooks for 50 tables turns out to be **4**.
+This is a bit unexpected, as one would think that for 5 times the number of tables,
+you would need about 5 times the number of cooks.
+
+This model is probably very inaccurate, I suspect due to the whole popularity functionality.
+In the real world, the number of people coming to a restaurant doesn't correlate that much with the number of people who came in the previous day.
 
 # Running the simulation
-## From a ruby file
+The inputs can be passed to the model in two ways.
+## Directly in code
 To run the simulation, simply instance the model with the wanted parameters and call the `step` or `run_a_day` methods, like this:
 ``` ruby
 require_relative 'model/Model'
@@ -149,11 +167,12 @@ model = Model.new(cooks_count: 1,
   model.run_a_day
 end
 ```
-## From a bash script
-The parameters can be passed in using environment variables, which is useful for scripting.
-For example, the `question1` file runs the simulation given a set of input parameters,
+## Using environment variables
+The parameters can be passed in using environment variables, which enables scripting.
+For example, the `./src/question1` file runs the simulation given a set of input parameters,
 and then passes the output JSON to a python script which draws the graphs seen previously.
 ## Output
+There are two forms of output from the model: logs and daily metrics in JSON.
 ### Logs
 Passing `logger_level: Logger::INFO` to the model tells it to output logs that look like this:
 ``` text
@@ -198,8 +217,9 @@ Passing `logger_level: Logger::INFO` to the model tells it to output logs that l
 ### Stats in JSON 
 If instead you want to analyze the output in another program, say, graph it,
 you can obtain the data in JSON using the `json_daily_metrics` method.
+It will return an array, with metrics for each day.
 
-Here is an example of the output data:
+Here is an example of the output data for three simulated days:
 ``` json
 [
   {
